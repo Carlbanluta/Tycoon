@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Ember Foundry — a forge tycoon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#120d0a;
+    --panel:#1d1610;
+    --panel-2:#251c14;
+    --ash:#3a2f24;
+    --iron:#8a8175;
+    --steel:#c8c0b3;
+    --ember:#ff6b35;
+    --ember-hot:#ffb627;
+    --ember-dim:#a8451f;
+    --good:#7fbf6a;
+    --text:#ece5d8;
+    --text-dim:#9c9184;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0;padding:0;
+    background:var(--void);
+    color:var(--text);
+    font-family:'Bitter',serif;
+    overflow-x:hidden;
+    -webkit-tap-highlight-color:transparent;
+    user-select:none;
+  }
+  ::selection{background:var(--ember);color:var(--void);}
+
+  .noise{
+    position:fixed;inset:0;pointer-events:none;z-index:1;
+    opacity:.035;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  header{
+    position:sticky;top:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;
+    background:linear-gradient(180deg, var(--panel) 0%, rgba(29,22,16,.96) 100%);
+    border-bottom:1px solid var(--ash);
+  }
+  .brand{display:flex;align-items:baseline;gap:10px;}
+  .brand .mark{font-size:22px;}
+  .brand h1{
+    font-family:'Bitter',serif;font-weight:900;
+    font-size:17px;letter-spacing:.06em;text-transform:uppercase;
+    margin:0;color:var(--ember-hot);
+  }
+  .brand span.sub{font-size:10px;color:var(--text-dim);letter-spacing:.14em;text-transform:uppercase;}
+
+  .gold-readout{text-align:right;}
+  .gold-readout .amt{
+    font-family:'JetBrains Mono',monospace;font-weight:700;
+    font-size:20px;color:var(--ember-hot);
+    text-shadow:0 0 14px rgba(255,107,53,.35);
+  }
+  .gold-readout .rate{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--good);
+  }
+
+  main{
+    max-width:920px;margin:0 auto;
+    padding:18px 14px 100px;
+    position:relative;z-index:2;
+  }
+
+  /* ---- Forge / signature element ---- */
+  .forge-wrap{
+    position:relative;
+    display:flex;flex-direction:column;align-items:center;
+    padding:26px 10px 18px;
+    margin-bottom:20px;
+  }
+  .forge-glow{
+    position:absolute;top:10%;left:50%;transform:translateX(-50%);
+    width:280px;height:280px;border-radius:50%;
+    background:radial-gradient(circle, rgba(255,107,53,.30) 0%, rgba(255,107,53,0) 70%);
+    filter:blur(4px);
+    animation:pulse 2.6s ease-in-out infinite;
+    pointer-events:none;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:.65;transform:translateX(-50%) scale(1);}
+    50%{opacity:1;transform:translateX(-50%) scale(1.08);}
+  }
+  #anvil{
+    position:relative;z-index:2;
+    width:190px;height:190px;
+    border-radius:16px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:76px;
+    cursor:pointer;
+    background:
+      radial-gradient(circle at 50% 35%, rgba(255,178,39,.22), transparent 60%),
+      linear-gradient(155deg, #2a2018 0%, #1a130d 100%);
+    border:2px solid var(--ash);
+    box-shadow:
+      inset 0 0 40px rgba(255,107,53,.10),
+      0 10px 30px rgba(0,0,0,.55);
+    transition:transform .08s ease;
+  }
+  #anvil:active{transform:scale(.94);}
+  #anvil.hit{animation:shake .18s ease;}
+  @keyframes shake{
+    0%{transform:translate(0,0) rotate(0);}
+    25%{transform:translate(-3px,2px) rotate(-1.2deg);}
+    50%{transform:translate(3px,-2px) rotate(1.2deg);}
+    75%{transform:translate(-2px,1px) rotate(-.6deg);}
+    100%{transform:translate(0,0) rotate(0);}
+  }
+  .click-power{
+    margin-top:12px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--text-dim);
+    letter-spacing:.04em;
+  }
+  .click-power b{color:var(--ember);}
+
+  .spark{
+    position:absolute;z-index:3;pointer-events:none;
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;
+    color:var(--ember-hot);
+    animation:rise .75s ease-out forwards;
+    text-shadow:0 0 8px rgba(255,107,53,.6);
+  }
+  @keyframes rise{
+    0%{opacity:1;transform:translateY(0) scale(1);}
+    100%{opacity:0;transform:translateY(-60px) scale(1.15);}
+  }
+  .ember-particle{
+    position:absolute;z-index:3;pointer-events:none;
+    width:4px;height:4px;border-radius:50%;
+    background:var(--ember-hot);
+    box-shadow:0 0 6px 1px rgba(255,178,39,.8);
+    animation:fly .6s ease-out forwards;
+  }
+  @keyframes fly{
+    0%{opacity:1;transform:translate(0,0);}
+    100%{opacity:0;transform:var(--fly-to);}
+  }
+
+  /* ---- Section headers ---- */
+  .section-title{
+    display:flex;align-items:center;gap:10px;
+    margin:26px 0 12px;
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--iron);
+  }
+  .section-title::after{
+    content:"";flex:1;height:1px;background:var(--ash);
+  }
+
+  /* ---- Stations (generators) ---- */
+  .station{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 14px;
+    margin-bottom:8px;
+    background:var(--panel);
+    border:1px solid var(--ash);
+    border-radius:10px;
+    cursor:pointer;
+    transition:border-color .15s, background .15s, transform .08s;
+  }
+  .station:active{transform:scale(.99);}
+  .station.affordable{border-color:var(--ember-dim);}
+  .station.affordable:hover{border-color:var(--ember);background:var(--panel-2);}
+  .station.locked{opacity:.4;cursor:default;}
+  .station .icon{
+    font-size:28px;width:40px;text-align:center;flex-shrink:0;
+  }
+  .station .info{flex:1;min-width:0;}
+  .station .name{
+    font-weight:700;font-size:14px;color:var(--text);
+    display:flex;align-items:center;gap:8px;
+  }
+  .station .name .owned{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--void);background:var(--ember-hot);
+    padding:1px 6px;border-radius:20px;font-weight:700;
+  }
+  .station .desc{
+    font-size:11px;color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    margin-top:2px;
+  }
+  .station .buy{
+    text-align:right;flex-shrink:0;
+  }
+  .station .cost{
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;
+    color:var(--ember-hot);
+  }
+  .station .cost.cant-afford{color:var(--iron);}
+  .station .rate{
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    color:var(--good);
+  }
+
+  /* ---- Upgrades ---- */
+  .upgrade{
+    display:flex;align-items:center;gap:12px;
+    padding:11px 14px;margin-bottom:8px;
+    background:var(--panel);border:1px solid var(--ash);border-radius:10px;
+    cursor:pointer;transition:border-color .15s,transform .08s;
+  }
+  .upgrade:active{transform:scale(.99);}
+  .upgrade.affordable{border-color:#5c8a4f;}
+  .upgrade.affordable:hover{background:var(--panel-2);}
+  .upgrade.bought{opacity:.35;cursor:default;}
+  .upgrade .icon{font-size:22px;width:34px;text-align:center;}
+  .upgrade .info{flex:1;}
+  .upgrade .name{font-weight:700;font-size:13px;}
+  .upgrade .desc{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
+  .upgrade .cost{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--good);flex-shrink:0;}
+
+  .empty-note{
+    font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;
+    text-align:center;padding:10px;
+  }
+
+  /* ---- Footer / controls ---- */
+  footer{
+    position:fixed;bottom:0;left:0;right:0;z-index:10;
+    display:flex;justify-content:center;gap:10px;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(0deg, var(--void) 60%, rgba(18,13,10,0));
+  }
+  footer button{
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.05em;
+    text-transform:uppercase;
+    background:var(--panel);color:var(--text-dim);
+    border:1px solid var(--ash);border-radius:8px;
+    padding:9px 14px;cursor:pointer;
+  }
+  footer button:active{background:var(--panel-2);}
+  footer button.danger{color:var(--ember);}
+
+  .toast{
+    position:fixed;top:70px;left:50%;transform:translateX(-50%);
+    background:var(--panel-2);border:1px solid var(--ember);
+    color:var(--text);padding:8px 16px;border-radius:8px;
+    font-family:'JetBrains Mono',monospace;font-size:12px;
+    z-index:20;opacity:0;pointer-events:none;
+    transition:opacity .3s, transform .3s;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(6px);}
+
+  @media (prefers-reduced-motion: reduce){
+    .forge-glow,#anvil.hit,.spark,.ember-particle{animation:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<header>
+  <div class="brand">
+    <span class="mark">🔥</span>
+    <div>
+      <h1>Ember Foundry</h1>
+      <span class="sub">Idle Forge Tycoon</span>
+    </div>
+  </div>
+  <div class="gold-readout">
+    <div class="amt" id="goldAmt">0</div>
+    <div class="rate" id="goldRate">+0/s</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="forge-wrap">
+    <div class="forge-glow"></div>
+    <div id="anvil">⚒️</div>
+    <div class="click-power">Strike power: <b id="clickPowerLabel">1</b> gold / hit</div>
+  </div>
+
+  <div class="section-title">Stations</div>
+  <div id="stations"></div>
+
+  <div class="section-title">Upgrades</div>
+  <div id="upgrades"></div>
+  <div class="empty-note" id="noUpgrades" style="display:none;">Earn more gold to unlock upgrades.</div>
+
+</main>
+
+<footer>
+  <button id="saveBtn">Save</button>
+  <button id="resetBtn" class="danger">Reset</button>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- State ---------------- */
+  var state = {
+    gold: 0,
+    totalEarned: 0,
+    clickBase: 1,
+    clickMult: 1,
+    lastTick: Date.now(),
+    lastSave: Date.now(),
+    stations: {},   // id -> owned count
+    upgrades: {}    // id -> bool bought
+  };
+
+  var STATIONS = [
+    { id:"apprentice", name:"Apprentice",      icon:"🧑‍🏭", baseCost:15,          baseRate:0.1,    desc:"Fetches coal, sweeps ash." },
+    { id:"bellows",    name:"Bellows Rig",     icon:"💨",   baseCost:100,         baseRate:1,      desc:"Keeps the fire fed." },
+    { id:"smelter",    name:"Smelter",         icon:"🧯",   baseCost:1100,        baseRate:8,      desc:"Melts raw ore to liquid." },
+    { id:"press",      name:"Ingot Press",     icon:"🔩",   baseCost:12000,       baseRate:47,     desc:"Stamps cooling metal into bars." },
+    { id:"forgemaster",name:"Forge Master",    icon:"🛠️",   baseCost:130000,      baseRate:260,    desc:"Oversees three shifts at once." },
+    { id:"foundry",    name:"Foundry Hall",    icon:"🏭",   baseCost:1400000,     baseRate:1400,   desc:"A whole building, only for casting." },
+    { id:"ironworks",  name:"Ironworks",       icon:"⚙️",   baseCost:20000000,    baseRate:7800,   desc:"Gears turning gears turning gold." },
+    { id:"blast",      name:"Blast Furnace",   icon:"🌋",   baseCost:330000000,   baseRate:44000,  desc:"Heat you can see from town." },
+    { id:"automaton",  name:"Automaton Line",  icon:"🤖",   baseCost:5100000000,  baseRate:260000, desc:"Clockwork smiths, no lunch breaks." },
+    { id:"dragon",     name:"Dragon's Hoard",  icon:"🐉",   baseCost:75000000000, baseRate:1600000,desc:"You made a deal. Don't ask." }
+  ];
+
+  var UPGRADES = [
+    { id:"hammer1", name:"Tempered Hammer",  icon:"🔨", cost:500,      desc:"Strike power x2.",
+      apply:function(){ state.clickMult*=2; } },
+    { id:"apprentice2", name:"Motivated Apprentices", icon:"📯", cost:2000, desc:"Apprentice output x2.",
+      req:"apprentice", apply:function(){ mult.apprentice*=2; } },
+    { id:"hammer2", name:"Reinforced Grip", icon:"🦾", cost:25000, desc:"Strike power x3.",
+      apply:function(){ state.clickMult*=3; } },
+    { id:"smelter2", name:"Double Crucible", icon:"🧪", cost:60000, desc:"Smelter output x2.",
+      req:"smelter", apply:function(){ mult.smelter*=2; } },
+    { id:"allrate1", name:"Coal Contract", icon:"⛏️", cost:250000, desc:"All station output x1.5.",
+      apply:function(){ globalMult*=1.5; } },
+    { id:"press2", name:"Precision Dies", icon:"📐", cost:900000, desc:"Ingot Press output x2.",
+      req:"press", apply:function(){ mult.press*=2; } },
+    { id:"hammer3", name:"Ember-Forged Hammer", icon:"⚡", cost:4000000, desc:"Strike power x5.",
+      apply:function(){ state.clickMult*=5; } },
+    { id:"allrate2", name:"Rail Spur", icon:"🚂", cost:15000000, desc:"All station output x2.",
+      apply:function(){ globalMult*=2; } },
+    { id:"clickscale", name:"Anvil of the Ancients", icon:"💎", cost:100000000, desc:"Strike power scales with gold/sec.",
+      apply:function(){ clickScalesWithRate=true; } },
+    { id:"allrate3", name:"Automated Logistics", icon:"📦", cost:2000000000, desc:"All station output x2.5.",
+      apply:function(){ globalMult*=2.5; } }
+  ];
+
+  var mult = {};       // per-station multiplier from upgrades
+  var globalMult = 1;  // multiplier applied to all stations
+  var clickScalesWithRate = false;
+  STATIONS.forEach(function(s){ mult[s.id]=1; state.stations[s.id]=0; });
+
+  /* ---------------- Formatting ---------------- */
+  function fmt(n){
+    if(n < 1000) return n.toFixed(n<10 && n%1!==0 ? 1 : 0);
+    var units = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc"];
+    var mag = Math.floor(Math.log10(n)/3);
+    mag = Math.min(mag, units.length-1);
+    var scaled = n / Math.pow(1000, mag);
+    return scaled.toFixed(scaled<10?2:scaled<100?1:0) + units[mag];
+  }
+
+  function stationCost(s){
+    var owned = state.stations[s.id];
+    return Math.ceil(s.baseCost * Math.pow(1.15, owned));
+  }
+  function stationRate(s){
+    return s.baseRate * state.stations[s.id] * mult[s.id] * globalMult;
+  }
+  function totalRate(){
+    var t=0;
+    STATIONS.forEach(function(s){ t+=stationRate(s); });
+    return t;
+  }
+  function clickPower(){
+    var base = state.clickBase * state.clickMult;
+    if(clickScalesWithRate) base += totalRate()*0.1;
+    return base;
+  }
+
+  /* ---------------- Rendering ---------------- */
+  var goldAmt = document.getElementById("goldAmt");
+  var goldRate = document.getElementById("goldRate");
+  var clickPowerLabel = document.getElementById("clickPowerLabel");
+  var stationsEl = document.getElementById("stations");
+  var upgradesEl = document.getElementById("upgrades");
+  var noUpgrades = document.getElementById("noUpgrades");
+
+  function firstLockedIndex(){
+    for(var i=0;i<STATIONS.length;i++){
+      if(state.stations[STATIONS[i].id]===0) return i;
+    }
+    return STATIONS.length;
+  }
+
+  function renderStations(){
+    var visibleCount = Math.min(STATIONS.length, firstLockedIndex()+2);
+    var html = "";
+    for(var i=0;i<visibleCount;i++){
+      var s = STATIONS[i];
+      var owned = state.stations[s.id];
+      var cost = stationCost(s);
+      var canAfford = state.gold >= cost;
+      var rate = s.baseRate * mult[s.id] * globalMult;
+      html += '<div class="station '+(canAfford?'affordable':'')+'" data-id="'+s.id+'">'
+        + '<div class="icon">'+s.icon+'</div>'
+        + '<div class="info">'
+          + '<div class="name">'+s.name+(owned>0?'<span class="owned">'+owned+'</span>':'')+'</div>'
+          + '<div class="desc">'+s.desc+'</div>'
+        + '</div>'
+        + '<div class="buy">'
+          + '<div class="cost '+(canAfford?'':'cant-afford')+'">'+fmt(cost)+'g</div>'
+          + '<div class="rate">'+fmt(rate)+'/s each</div>'
+        + '</div>'
+      + '</div>';
+    }
+    stationsEl.innerHTML = html;
+    Array.prototype.forEach.call(stationsEl.querySelectorAll(".station"), function(el){
+      el.addEventListener("click", function(){ buyStation(el.getAttribute("data-id")); });
+    });
+  }
+
+  function renderUpgrades(){
+    var avail = UPGRADES.filter(function(u){
+      if(state.upgrades[u.id]) return false;
+      if(u.req && state.stations[u.req]===0) return false;
+      return state.gold >= u.cost * 0.4 || state.totalEarned >= u.cost*0.4;
+    });
+    if(avail.length===0){
+      upgradesEl.innerHTML="";
+      noUpgrades.style.display="block";
+      return;
+    }
+    noUpgrades.style.display="none";
+    var html="";
+    avail.slice(0,5).forEach(function(u){
+      var canAfford = state.gold >= u.cost;
+      html += '<div class="upgrade '+(canAfford?'affordable':'')+'" data-id="'+u.id+'">'
+        + '<div class="icon">'+u.icon+'</div>'
+        + '<div class="info"><div class="name">'+u.name+'</div><div class="desc">'+u.desc+'</div></div>'
+        + '<div class="cost">'+fmt(u.cost)+'g</div>'
+      + '</div>';
+    });
+    upgradesEl.innerHTML = html;
+    Array.prototype.forEach.call(upgradesEl.querySelectorAll(".upgrade"), function(el){
+      el.addEventListener("click", function(){ buyUpgrade(el.getAttribute("data-id")); });
+    });
+  }
+
+  function renderHeader(){
+    goldAmt.textContent = fmt(state.gold)+"g";
+    goldRate.textContent = "+"+fmt(totalRate())+"/s";
+    clickPowerLabel.textContent = fmt(clickPower());
+  }
+
+  function renderAll(){
+    renderHeader();
+    renderStations();
+    renderUpgrades();
+  }
+
+  /* ---------------- Actions ---------------- */
+  function buyStation(id){
+    var s = STATIONS.filter(function(x){return x.id===id;})[0];
+    if(!s) return;
+    var cost = stationCost(s);
+    if(state.gold < cost) return;
+    state.gold -= cost;
+    state.stations[id]++;
+    renderAll();
+  }
+
+  function buyUpgrade(id){
+    var u = UPGRADES.filter(function(x){return x.id===id;})[0];
+    if(!u || state.upgrades[id]) return;
+    if(state.gold < u.cost) return;
+    state.gold -= u.cost;
+    state.upgrades[id] = true;
+    u.apply();
+    showToast(u.name+" acquired");
+    renderAll();
+  }
+
+  var anvil = document.getElementById("anvil");
+  anvil.addEventListener("click", function(e){
+    var gain = clickPower();
+    state.gold += gain;
+    state.totalEarned += gain;
+    anvil.classList.remove("hit"); void anvil.offsetWidth; anvil.classList.add("hit");
+    spawnSpark(gain);
+    spawnEmbers();
+    renderHeader();
+    renderStations();
+    renderUpgrades();
+  });
+
+  function spawnSpark(amount){
+    var rect = anvil.getBoundingClientRect();
+    var el = document.createElement("div");
+    el.className="spark";
+    el.textContent="+"+fmt(amount);
+    el.style.left = (rect.left + rect.width/2 + (Math.random()*40-20)) + "px";
+    el.style.top = (rect.top + rect.height*0.3) + "px";
+    document.body.appendChild(el);
+    setTimeout(function(){ el.remove(); }, 750);
+  }
+  function spawnEmbers(){
+    var rect = anvil.getBoundingClientRect();
+    for(var i=0;i<6;i++){
+      var el = document.createElement("div");
+      el.className="ember-particle";
+      var cx = rect.left+rect.width/2, cy = rect.top+rect.height/2;
+      var angle = Math.random()*Math.PI*2, dist = 40+Math.random()*50;
+      el.style.setProperty("--fly-to", "translate("+(Math.cos(angle)*dist)+"px,"+(Math.sin(angle)*dist-30)+"px)");
+      el.style.left = cx+"px"; el.style.top = cy+"px";
+      document.body.appendChild(el);
+      (function(node){ setTimeout(function(){ node.remove(); }, 620); })(el);
+    }
+  }
+
+  var toastEl = document.getElementById("toast");
+  var toastTimer=null;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, 1800);
+  }
+
+  /* ---------------- Save / Load ---------------- */
+  var SAVE_KEY = "emberFoundrySave_v1";
+
+  function save(silent){
+    state.lastSave = Date.now();
+    try{
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      if(!silent) showToast("Progress saved");
+    }catch(e){ if(!silent) showToast("Couldn't save (storage unavailable)"); }
+  }
+
+  function load(){
+    var raw;
+    try{ raw = localStorage.getItem(SAVE_KEY); }catch(e){ raw=null; }
+    if(!raw) return;
+    try{
+      var loaded = JSON.parse(raw);
+      Object.keys(loaded).forEach(function(k){ state[k]=loaded[k]; });
+      STATIONS.forEach(function(s){ if(!(s.id in state.stations)) state.stations[s.id]=0; });
+      // reapply upgrade effects
+      UPGRADES.forEach(function(u){
+        if(state.upgrades[u.id]) u.apply();
+      });
+      // offline progress
+      var elapsedSec = Math.max(0,(Date.now()-state.lastSave)/1000);
+      elapsedSec = Math.min(elapsedSec, 8*3600); // cap at 8h
+      if(elapsedSec > 5){
+        var rate = totalRate();
+        var earned = rate*elapsedSec;
+        if(earned>0){
+          state.gold += earned;
+          state.totalEarned += earned;
+          showToast("Welcome back — the forge earned "+fmt(earned)+"g while away");
+        }
+      }
+    }catch(e){}
+  }
+
+  document.getElementById("saveBtn").addEventListener("click", function(){ save(false); });
+  document.getElementById("resetBtn").addEventListener("click", function(){
+    if(confirm("Reset all progress? This cannot be undone.")){
+      try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+      location.reload();
+    }
+  });
+
+  /* ---------------- Game loop ---------------- */
+  function tick(){
+    var now = Date.now();
+    var dt = (now - state.lastTick)/1000;
+    state.lastTick = now;
+    var earned = totalRate()*dt;
+    state.gold += earned;
+    state.totalEarned += earned;
+    renderAll();
+  }
+
+  load();
+  renderAll();
+  setInterval(tick, 200);
+  setInterval(function(){ save(true); }, 15000);
+  window.addEventListener("beforeunload", function(){ save(true); });
+
+})();
+</script>
+
+</body>
+</html>
