@@ -7,16 +7,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  .announce-banner{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  background:linear-gradient(90deg, var(--ember-dim), var(--ember));
-  color:#1a0f08;font-family:'Bitter',serif;font-weight:900;
-  text-align:center;padding:14px 20px;font-size:15px;
-  box-shadow:0 4px 20px rgba(0,0,0,.4);
-  transform:translateY(-100%);transition:transform .3s ease;
-  pointer-events:none;
-}
-.announce-banner.show{transform:translateY(0);}
   :root{
     --void:#120d0a;
     --panel:#1d1610;
@@ -260,6 +250,17 @@
   }
   .toast.show{opacity:1;transform:translateX(-50%) translateY(6px);}
 
+  .announce-banner{
+    position:fixed;top:0;left:0;right:0;z-index:100;
+    background:linear-gradient(90deg, var(--ember-dim), var(--ember));
+    color:#1a0f08;font-family:'Bitter',serif;font-weight:900;
+    text-align:center;padding:14px 20px;font-size:15px;
+    box-shadow:0 4px 20px rgba(0,0,0,.4);
+    transform:translateY(-100%);transition:transform .3s ease;
+    pointer-events:none;
+  }
+  .announce-banner.show{transform:translateY(0);}
+
   @media (prefers-reduced-motion: reduce){
     .forge-glow,#anvil.hit,.spark,.ember-particle{animation:none !important;}
   }
@@ -421,8 +422,7 @@
 </style>
 </head>
 <body>
-  
-<div class="announce-banner" id="announceToast"></div>
+
 <div class="noise"></div>
 
 <header>
@@ -473,6 +473,7 @@
 </main>
 
 <div class="toast" id="toast"></div>
+<div class="announce-banner" id="announceToast"></div>
 
 <!-- Intro modal -->
 <div class="modal-backdrop" id="introModal">
@@ -1355,6 +1356,45 @@
       });
   });
 
+  /* ---------------- Owner announcements (one-way chat) ---------------- */
+  // Connects to the same backend as the leaderboard, over WebSocket, and
+  // displays whatever the owner broadcasts. This never reads or writes
+  // localStorage, so it cannot affect anyone's saved progress.
+  (function initAnnouncements(){
+    if (!API_BASE_URL) return; // no backend configured, skip entirely
+
+    var announceToastEl = document.getElementById("announceToast");
+    var announceTimer = null;
+    function showAnnouncement(msg){
+      if(!announceToastEl) return;
+      announceToastEl.textContent = "📢 " + msg;
+      announceToastEl.classList.add("show");
+      clearTimeout(announceTimer);
+      announceTimer = setTimeout(function(){ announceToastEl.classList.remove("show"); }, 15000);
+    }
+
+    var wsUrl = API_BASE_URL.replace(/^http/, "ws") + "/ws";
+    var socket;
+
+    function connect(){
+      socket = new WebSocket(wsUrl);
+      socket.onmessage = function(evt){
+        try{
+          var data = JSON.parse(evt.data);
+          if(data.type === "announcement" && data.message){
+            showAnnouncement(data.message);
+          }
+        }catch(e){}
+      };
+      socket.onclose = function(){
+        // reconnect after a short delay if the connection drops
+        setTimeout(connect, 3000);
+      };
+      socket.onerror = function(){ socket.close(); };
+    }
+    connect();
+  })();
+
   /* ---------------- Boot ---------------- */
   load();
   updateSoundBtnLabel();
@@ -1372,8 +1412,6 @@
   }
 
 })();
-
-  announceTimer = setTimeout(function(){ announceToastEl.classList.remove("show"); }, 15000);
 </script>
 
 </body>
