@@ -444,7 +444,7 @@
     <button id="helpBtn">How to play</button>
     <button id="leaderboardBtn">🏆 Leaderboard</button>
     <button id="achBtn">🎖️ <span id="achCount">0/0</span></button>
-    <button id="prestigeBtn">♻️ Reforge</button>
+    <button id="prestigeBtn">♻️ Rebirth</button>
     <button id="soundBtn">🔊 Sound</button>
     <button id="saveBtn">Save</button>
   </div>
@@ -474,7 +474,7 @@
         <li>Tap the anvil to strike it and earn gold.</li>
         <li>Spend gold on stations — they keep earning gold per second even while you're away.</li>
         <li>Buy upgrades and boosts to multiply your output.</li>
-        <li>Once you've earned enough, Reforge for a permanent bonus that carries into your next run.</li>
+        <li>Once you've earned enough, Rebirth for a permanent bonus that carries into your next run.</li>
         <li>The game autosaves in this browser, so closing the tab is safe.</li>
       </ul>
       <div class="note-box">
@@ -523,11 +523,11 @@
   <div class="modal-wrap">
     <div class="modal">
       <button class="modal-close" id="prestigeClose">✕</button>
-      <h2>♻️ Reforge the Foundry</h2>
+      <h2>♻️ Rebirth the Foundry</h2>
       <div class="modal-sub">PERMANENT PROGRESS</div>
-      <p>Reforging resets your gold, stations, and upgrades back to zero — but converts your
+      <p>Rebirthing resets your gold, stations, and upgrades back to zero — but converts your
       lifetime earnings into permanent <b>Ember Shards</b>. Each shard adds +10% to ALL future
-      output, forever, even after reforging again.</p>
+      output, forever, even after rebirthing again.</p>
       <div class="note-box">
         Shards owned: <b id="shardsOwned">0</b> (current bonus: <b id="prestigeMultLabel">x1.0</b>)<br>
         Shards you'd gain right now: <b id="shardsGain">0</b>
@@ -645,9 +645,9 @@
   var clickScalesWithRate = false;
   STATIONS.forEach(function(s){ mult[s.id]=1; state.stations[s.id]=0; });
 
-  /* ---------------- Prestige ("Reforge the Foundry") ---------------- */
+  /* ---------------- Prestige ("Rebirth the Foundry") ---------------- */
   // Permanent shards earned from total lifetime earnings, kept across resets.
-  var PRESTIGE_MIN_EARNED = 1000000; // 1M lifetime earned before reforging unlocks
+  var PRESTIGE_MIN_EARNED = 1000000; // 1M lifetime earned before rebirthing unlocks
   function prestigeMultiplier(){
     return 1 + state.prestigeShards * 0.1;
   }
@@ -674,7 +674,7 @@
     activeBoosts = [];
     boostCooldownUntil = {};
     BOOSTS.forEach(function(b){ boostCooldownUntil[b.id]=0; });
-    showToast("Reforged! +"+gained+" Ember Shard"+(gained===1?"":"s")+" — output now x"+prestigeMultiplier().toFixed(1));
+    showToast("Reborn! +"+gained+" Ember Shard"+(gained===1?"":"s")+" — output now x"+prestigeMultiplier().toFixed(1));
     renderAll();
   }
 
@@ -700,7 +700,7 @@
       check:function(){ return Object.keys(state.upgrades).length >= UPGRADES.length; } },
     { id:"boost_used", icon:"🔥", name:"Feel the Heat", desc:"Activate a boost.",
       check:function(){ return activeBoosts.length > 0 || Object.values(boostCooldownUntil).some(function(t){ return t>0; }); } },
-    { id:"first_prestige", icon:"♻️", name:"Reforged", desc:"Prestige for the first time.",
+    { id:"first_prestige", icon:"♻️", name:"Reborn", desc:"Rebirth for the first time.",
       check:function(){ return state.lifetimePrestiges >= 1; } },
     { id:"overheat", icon:"🥵", name:"Overheated", desc:"Trigger the anvil's overheat cooldown.",
       check:function(){ return hasOverheated; } }
@@ -838,13 +838,17 @@
 
   function renderBoosts(){
     var now = Date.now();
+    var anyActive = activeBoosts.some(function(ab){ return ab.endsAt > now; });
     var html = "";
     BOOSTS.forEach(function(b){
       var onCooldown = boostCooldownUntil[b.id] > now;
       var canAfford = state.gold >= b.cost;
-      var cls = onCooldown ? "cooldown" : (canAfford ? "affordable" : "");
+      var blocked = onCooldown || anyActive;
+      var cls = blocked ? "cooldown" : (canAfford ? "affordable" : "");
       var bottom;
-      if(onCooldown){
+      if(anyActive && !onCooldown){
+        bottom = '<div class="bc-cd">A boost is already active</div>';
+      } else if(onCooldown){
         bottom = '<div class="bc-cd">Ready in ' + Math.ceil((boostCooldownUntil[b.id]-now)/1000) + 's</div>';
       } else {
         bottom = '<div class="bc-cost '+(canAfford?'':'cant-afford')+'">'+fmt(b.cost)+'g</div>';
@@ -867,6 +871,15 @@
     var b = BOOSTS.filter(function(x){ return x.id===id; })[0];
     if(!b) return;
     var now = Date.now();
+
+    // Only one boost may be active at a time — clear out any expired ones,
+    // then block the purchase if something is still running.
+    activeBoosts = activeBoosts.filter(function(ab){ return ab.endsAt > now; });
+    if(activeBoosts.length > 0){
+      showToast("Only one boost can be active at a time — wait for it to end.");
+      return;
+    }
+
     if(boostCooldownUntil[id] > now) return;
     if(state.gold < b.cost) return;
     state.gold -= b.cost;
@@ -910,7 +923,7 @@
     if(gain > 0){
       shardsGainEl.textContent = "+"+gain;
       prestigeBtn.disabled = false;
-      prestigeBtn.textContent = "Reforge for +"+gain+" Shard"+(gain===1?"":"s");
+      prestigeBtn.textContent = "Rebirth for +"+gain+" Shard"+(gain===1?"":"s");
     } else {
       var need = fmt(PRESTIGE_MIN_EARNED);
       shardsGainEl.textContent = "0 (earn "+need+"g lifetime to unlock)";
@@ -1117,16 +1130,34 @@
           showToast("Welcome back — the forge earned "+fmt(earned)+"g while away");
         }
       }
+      // Reset the tick clock to right now — otherwise the next tick() call
+      // re-measures this same elapsed gap and adds the offline earnings twice.
+      state.lastTick = Date.now();
     }catch(e){}
   }
 
   document.getElementById("saveBtn").addEventListener("click", function(){ save(false); });
 
   /* ---------------- Game loop ---------------- */
+  var MAX_TICK_DT_SEC = 5; // if more than this passed (e.g. tab was backgrounded/suspended),
+                            // treat the excess as offline time instead of a live tick.
   function tick(){
     var now = Date.now();
     var dt = (now - state.lastTick)/1000;
     state.lastTick = now;
+
+    if(dt > MAX_TICK_DT_SEC){
+      var cappedElapsed = Math.min(dt, 8*3600);
+      var earned = totalRate()*cappedElapsed;
+      if(earned > 0){
+        state.gold += earned;
+        state.totalEarned += earned;
+        showToast("Welcome back — the forge earned "+fmt(earned)+"g while away");
+      }
+      renderAll();
+      return;
+    }
+
     var earned = totalRate()*dt;
     state.gold += earned;
     state.totalEarned += earned;
@@ -1167,7 +1198,7 @@
   prestigeModal.addEventListener("click", function(e){ if(e.target===prestigeModal) closeModal(prestigeModal); });
   document.getElementById("prestigeConfirmBtn").addEventListener("click", function(){
     if(shardsAvailable() <= 0) return;
-    if(confirm("Reforge now? This resets your gold, stations, and upgrades — but the Ember Shard bonus is permanent.")){
+    if(confirm("Rebirth now? This resets your gold, stations, and upgrades — but the Ember Shard bonus is permanent.")){
       doPrestige();
       closeModal(prestigeModal);
     }
