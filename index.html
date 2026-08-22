@@ -1365,9 +1365,23 @@
 
     var announceToastEl = document.getElementById("announceToast");
     var announceTimer = null;
-    function showAnnouncement(msg){
-      if(!announceToastEl) return;
-      announceToastEl.textContent = "📢 " + msg;
+    function showAnnouncement(msg, adminName){
+  if(!announceToastEl) return;
+
+  announceToastEl.textContent =
+    "📢 👑 " +
+    (adminName || "Admin") +
+    " [ADMIN]: " +
+    msg;
+
+  announceToastEl.classList.add("show");
+
+  clearTimeout(announceTimer);
+
+  announceTimer = setTimeout(function(){
+    announceToastEl.classList.remove("show");
+  }, 15000);
+  }
       announceToastEl.classList.add("show");
       clearTimeout(announceTimer);
       announceTimer = setTimeout(function(){ announceToastEl.classList.remove("show"); }, 15000);
