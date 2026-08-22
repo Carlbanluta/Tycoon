@@ -1,26 +1,27 @@
-// Ember Foundry — public leaderboard backend
-// A tiny Express API backed by a JSON file. Good enough for a class project;
-// swap DATA_FILE storage for a real database if this ever needs to scale.
+// Ember Foundry — leaderboard + admin announcement backend
 
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const { WebSocketServer } = require('ws');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 const DATA_FILE = path.join(__dirname, 'leaderboard.json');
-const MAX_STORED = 200;   // keep at most this many entries on disk
-const MAX_RETURNED = 20;  // send at most this many to the client
+
+const MAX_STORED = 200;
+const MAX_RETURNED = 20;
 const MAX_NAME_LEN = 16;
 
-// Set this in Render's Environment settings (Settings -> Environment -> Add
-// Environment Variable, key ADMIN_KEY). Protects the reset endpoint so random
-// visitors can't wipe the leaderboard.
 const ADMIN_KEY = process.env.ADMIN_KEY || '';
 
-app.use(cors());              // allow the game page (any origin) to call this API
+app.use(cors());
 app.use(express.json());
+
+/* ---------------- Leaderboard ---------------- */
 
 function readScores() {
   try {
@@ -36,63 +37,180 @@ function writeScores(scores) {
   fs.writeFileSync(DATA_FILE, JSON.stringify(scores, null, 2));
 }
 
-// Health check — useful when confirming a deploy worked
+// Health check
 app.get('/', (req, res) => {
-  res.json({ ok: true, service: 'ember-foundry-leaderboard' });
+  res.json({
+    ok: true,
+    service: 'ember-foundry-leaderboard'
+  });
 });
 
-// GET top scores, highest gold/sec first
+// Get leaderboard
 app.get('/api/leaderboard', (req, res) => {
   const scores = readScores();
+
   scores.sort((a, b) => b.score - a.score);
+
   res.json(scores.slice(0, MAX_RETURNED));
 });
 
-// POST a score. Same name submitted again only overwrites if the new score is higher.
+// Submit leaderboard score
 app.post('/api/leaderboard', (req, res) => {
   const { name, score } = req.body || {};
 
   if (typeof name !== 'string' || !name.trim()) {
-    return res.status(400).json({ error: 'name is required' });
+    return res.status(400).json({
+      error: 'name is required'
+    });
   }
+
   if (typeof score !== 'number' || !isFinite(score) || score < 0) {
-    return res.status(400).json({ error: 'score must be a non-negative number' });
+    return res.status(400).json({
+      error: 'score must be a non-negative number'
+    });
   }
 
   const cleanName = name.trim().slice(0, MAX_NAME_LEN);
+
   let scores = readScores();
 
   const existing = scores.find(s => s.name === cleanName);
+
   if (existing) {
     if (score > existing.score) {
       existing.score = score;
       existing.updatedAt = Date.now();
     }
   } else {
-    scores.push({ name: cleanName, score, updatedAt: Date.now() });
+    scores.push({
+      name: cleanName,
+      score,
+      updatedAt: Date.now()
+    });
   }
 
   scores.sort((a, b) => b.score - a.score);
   scores = scores.slice(0, MAX_STORED);
+
   writeScores(scores);
 
-  res.json({ ok: true, rank: scores.findIndex(s => s.name === cleanName) + 1 });
+  res.json({
+    ok: true,
+    rank: scores.findIndex(s => s.name === cleanName) + 1
+  });
 });
 
-// Visit this URL in a browser to wipe the whole leaderboard, e.g.:
-// https://your-app.onrender.com/api/leaderboard/reset?key=YOUR_SECRET_KEY
+/* ---------------- Reset leaderboard ---------------- */
+
 app.get('/api/leaderboard/reset', (req, res) => {
   const key = req.query.key || '';
+
   if (!ADMIN_KEY) {
-    return res.status(500).json({ error: 'ADMIN_KEY is not set on the server — set it in Render\'s Environment settings first' });
+    return res.status(500).json({
+      error: 'ADMIN_KEY is not set on the server'
+    });
   }
+
   if (key !== ADMIN_KEY) {
-    return res.status(403).json({ error: 'invalid key' });
+    return res.status(403).json({
+      error: 'invalid key'
+    });
   }
+
   writeScores([]);
-  res.json({ ok: true, message: 'Leaderboard reset' });
+
+  res.json({
+    ok: true,
+    message: 'Leaderboard reset'
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`Ember Foundry leaderboard server listening on port ${PORT}`);
+/* ---------------- WebSocket announcements ---------------- */
+
+const server = http.createServer(app);
+
+const wss = new WebSocketServer({
+  server,
+  path: '/ws'
+});
+
+wss.on('connection', function(socket) {
+  console.log('Player connected to announcement system');
+
+  socket.send(JSON.stringify({
+    type: 'connected'
+  }));
+
+  socket.on('close', function() {
+    console.log('Player disconnected');
+  });
+});
+
+// Send announcement to every connected player
+function broadcastAnnouncement(message) {
+  const data = JSON.stringify({
+    type: 'announcement',
+    message: message
+  });
+
+  let sent = 0;
+
+  wss.clients.forEach(function(client) {
+    if (client.readyState === 1) {
+      client.send(data);
+      sent++;
+    }
+  });
+
+  return sent;
+}
+
+/* ---------------- Admin announcement ---------------- */
+
+app.post('/api/announce', (req, res) => {
+  const key = req.headers['x-admin-key'];
+  const message = req.body && req.body.message;
+
+  if (!ADMIN_KEY) {
+    return res.status(500).json({
+      error: 'ADMIN_KEY is not set on the server'
+    });
+  }
+
+  if (key !== ADMIN_KEY) {
+    return res.status(403).json({
+      error: 'invalid admin key'
+    });
+  }
+
+  if (typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({
+      error: 'message is required'
+    });
+  }
+
+  const cleanMessage = message.trim().slice(0, 500);
+
+  const players = broadcastAnnouncement(cleanMessage);
+
+  console.log(
+    'ADMIN ANNOUNCEMENT:',
+    cleanMessage,
+    '| players reached:',
+    players
+  );
+
+  res.json({
+    ok: true,
+    message: cleanMessage,
+    players: players
+  });
+});
+
+/* ---------------- Start server ---------------- */
+
+server.listen(PORT, () => {
+  console.log(
+    `Ember Foundry server listening on port ${PORT}`
+  );
 });
