@@ -1396,8 +1396,11 @@
         try{
           var data = JSON.parse(evt.data);
           if(data.type === "announcement" && data.message){
-            showAnnouncement(data.message);
-          }
+  showAnnouncement(
+    data.message,
+    data.adminName
+  );
+  }
         }catch(e){}
       };
       socket.onclose = function(){
