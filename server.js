@@ -14,6 +14,11 @@ const MAX_STORED = 200;   // keep at most this many entries on disk
 const MAX_RETURNED = 20;  // send at most this many to the client
 const MAX_NAME_LEN = 16;
 
+// Set this in Render's Environment settings (Settings -> Environment -> Add
+// Environment Variable, key ADMIN_KEY). Protects the reset endpoint so random
+// visitors can't wipe the leaderboard.
+const ADMIN_KEY = process.env.ADMIN_KEY || '';
+
 app.use(cors());              // allow the game page (any origin) to call this API
 app.use(express.json());
 
@@ -72,6 +77,20 @@ app.post('/api/leaderboard', (req, res) => {
   writeScores(scores);
 
   res.json({ ok: true, rank: scores.findIndex(s => s.name === cleanName) + 1 });
+});
+
+// Visit this URL in a browser to wipe the whole leaderboard, e.g.:
+// https://your-app.onrender.com/api/leaderboard/reset?key=YOUR_SECRET_KEY
+app.get('/api/leaderboard/reset', (req, res) => {
+  const key = req.query.key || '';
+  if (!ADMIN_KEY) {
+    return res.status(500).json({ error: 'ADMIN_KEY is not set on the server — set it in Render\'s Environment settings first' });
+  }
+  if (key !== ADMIN_KEY) {
+    return res.status(403).json({ error: 'invalid key' });
+  }
+  writeScores([]);
+  res.json({ ok: true, message: 'Leaderboard reset' });
 });
 
 app.listen(PORT, () => {
