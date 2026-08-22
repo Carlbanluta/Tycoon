@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ember Foundry — Admin</title>
+<style>
+  body{
+    margin:0;padding:20px;
+    background:#120d0a;color:#ece5d8;
+    font-family:sans-serif;
+  }
+  h1{font-size:18px;color:#ffb627;}
+  label{display:block;margin-top:16px;font-size:13px;color:#9c9184;}
+  input,textarea{
+    width:100%;box-sizing:border-box;
+    background:#1d1610;border:1px solid #3a2f24;border-radius:8px;
+    color:#ece5d8;padding:10px;font-size:14px;margin-top:6px;
+    font-family:sans-serif;
+  }
+  textarea{min-height:80px;resize:vertical;}
+  button{
+    margin-top:16px;width:100%;padding:14px;
+    background:#ff6b35;color:#1a0f08;border:none;border-radius:8px;
+    font-weight:700;font-size:15px;cursor:pointer;
+  }
+  button:disabled{opacity:.5;}
+  #status{margin-top:14px;font-size:13px;padding:10px;border-radius:8px;display:none;}
+  #status.ok{display:block;background:#1d1610;border:1px solid #7fbf6a;color:#7fbf6a;}
+  #status.err{display:block;background:#1d1610;border:1px solid #ff6b35;color:#ff6b35;}
+</style>
+</head>
+<body>
+
+<h1>📢 Ember Foundry — Send Announcement</h1>
+
+<label for="apiUrl">Backend URL</label>
+<input type="text" id="apiUrl" value="https://tycoon-1-bt5n.onrender.com" placeholder="https://your-backend.onrender.com">
+
+<label for="adminKey">Admin key</label>
+<input type="password" id="adminKey" placeholder="Your secret ADMIN_KEY">
+
+<label for="message">Message (shown to all players for 15s)</label>
+<textarea id="message" placeholder="Type your announcement..." maxlength="500"></textarea>
+
+<button id="sendBtn">Send to all players</button>
+
+<div id="status"></div>
+
+<script>
+  var sendBtn = document.getElementById("sendBtn");
+  var statusEl = document.getElementById("status");
+
+  // Remember the admin key + URL in this browser only, so you don't
+  // have to retype them every time. Nothing here is sent anywhere
+  // except directly to your own backend when you hit Send.
+  try{
+    var savedKey = localStorage.getItem("emberAdminKey");
+    var savedUrl = localStorage.getItem("emberAdminUrl");
+    if(savedKey) document.getElementById("adminKey").value = savedKey;
+    if(savedUrl) document.getElementById("apiUrl").value = savedUrl;
+  }catch(e){}
+
+  sendBtn.addEventListener("click", function(){
+    var apiUrl = document.getElementById("apiUrl").value.trim().replace(/\/$/, "");
+    var adminKey = document.getElementById("adminKey").value;
+    var message = document.getElementById("message").value.trim();
+
+    statusEl.className = "";
+    statusEl.style.display = "none";
+
+    if(!apiUrl || !adminKey || !message){
+      statusEl.textContent = "Fill in the backend URL, admin key, and a message.";
+      statusEl.className = "err";
+      return;
+    }
+
+    try{
+      localStorage.setItem("emberAdminKey", adminKey);
+      localStorage.setItem("emberAdminUrl", apiUrl);
+    }catch(e){}
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = "Sending...";
+
+    fetch(apiUrl + "/api/announce", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-admin-key": adminKey
+      },
+      body: JSON.stringify({ message: message })
+    })
+      .then(function(r){
+        if(!r.ok) throw new Error("Server rejected the request (check your admin key).");
+        return r.json();
+      })
+      .then(function(){
+        statusEl.textContent = "Sent! Players will see it now.";
+        statusEl.className = "ok";
+        document.getElementById("message").value = "";
+      })
+      .catch(function(err){
+        statusEl.textContent = "Failed: " + err.message;
+        statusEl.className = "err";
+      })
+      .finally(function(){
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Send to all players";
+      });
+  });
+</script>
+
+</body>
+</html>
