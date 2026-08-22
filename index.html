@@ -1107,44 +1107,48 @@
   }
 
   function load(){
-  var raw;
-  try{ raw = localStorage.getItem(SAVE_KEY); }catch(e){ raw=null; }
-  if(!raw) return;
-  try{
-    var loaded = JSON.parse(raw);
-    Object.keys(loaded).forEach(function(k){ state[k]=loaded[k]; });
-    STATIONS.forEach(function(s){ if(!(s.id in state.stations)) state.stations[s.id]=0; });
+    var raw;
+    try{ raw = localStorage.getItem(SAVE_KEY); }catch(e){ raw=null; }
+    if(!raw) return;
+    try{
+      var loaded = JSON.parse(raw);
+      Object.keys(loaded).forEach(function(k){ state[k]=loaded[k]; });
+      STATIONS.forEach(function(s){ if(!(s.id in state.stations)) state.stations[s.id]=0; });
 
-    // Reset everything upgrades can affect back to its base value BEFORE
-    // reapplying them. state.clickMult (and clickScalesWithRate) are saved
-    // as part of `state`, so without this reset, every reload re-multiplies
-    // them on top of the already-multiplied saved value — doubling (and
-    // eventually stacking further) your click power each time you reopen.
-    state.clickMult = 1;
-    clickScalesWithRate = false;
-    globalMult = 1;
-    STATIONS.forEach(function(s){ mult[s.id] = 1; });
+      // Reset everything upgrades can affect back to its base value BEFORE
+      // reapplying them. state.clickMult (and clickScalesWithRate) are saved
+      // as part of `state`, so without this reset, every reload re-multiplies
+      // them on top of the already-multiplied saved value — doubling (and
+      // eventually stacking further) the strike power each time the page
+      // is reopened. Resetting first makes every reload recompute the
+      // multipliers fresh from the owned upgrades instead of compounding.
+      state.clickMult = 1;
+      clickScalesWithRate = false;
+      globalMult = 1;
+      STATIONS.forEach(function(s){ mult[s.id] = 1; });
 
-    // reapply upgrade effects from a clean baseline
-    UPGRADES.forEach(function(u){
-      if(state.upgrades[u.id]) u.apply();
-    });
+      // reapply upgrade effects from a clean baseline
+      UPGRADES.forEach(function(u){
+        if(state.upgrades[u.id]) u.apply();
+      });
 
-    // offline progress
-    var elapsedSec = Math.max(0,(Date.now()-state.lastSave)/1000);
-    elapsedSec = Math.min(elapsedSec, 8*3600); // cap at 8h
-    if(elapsedSec > 5){
-      var rate = totalRate();
-      var earned = rate*elapsedSec;
-      if(earned>0){
-        state.gold += earned;
-        state.totalEarned += earned;
-        showToast("Welcome back — the forge earned "+fmt(earned)+"g while away");
+      // offline progress
+      var elapsedSec = Math.max(0,(Date.now()-state.lastSave)/1000);
+      elapsedSec = Math.min(elapsedSec, 8*3600); // cap at 8h
+      if(elapsedSec > 5){
+        var rate = totalRate();
+        var earned = rate*elapsedSec;
+        if(earned>0){
+          state.gold += earned;
+          state.totalEarned += earned;
+          showToast("Welcome back — the forge earned "+fmt(earned)+"g while away");
+        }
       }
-    }
-    state.lastTick = Date.now();
-  }catch(e){}
-}
+      // Reset the tick clock to right now — otherwise the next tick() call
+      // re-measures this same elapsed gap and adds the offline earnings twice.
+      state.lastTick = Date.now();
+    }catch(e){}
+  }
 
   document.getElementById("saveBtn").addEventListener("click", function(){ save(false); });
 
