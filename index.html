@@ -679,7 +679,7 @@
   // Permanent shards earned from total lifetime earnings, kept across resets.
   var PRESTIGE_MIN_EARNED = 1000000; // 1M lifetime earned before rebirthing unlocks
   function prestigeMultiplier(){
-    return 1 + state.prestigeShards * 0.1;
+    return 1 + state.prestigeShards * 0.0001;
   }
   function shardsAvailable(){
     if(state.totalEarned < PRESTIGE_MIN_EARNED) return 0;
