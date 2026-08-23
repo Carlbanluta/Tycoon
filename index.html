@@ -252,7 +252,8 @@
 
   .announce-banner{
     position:fixed;top:0;left:0;right:0;z-index:100;
-    background:linear-gradient(90deg, var(--ember-dim), var(--ember));
+    background:linear-gradient(90deg, rgba(168,69,31,.82), rgba(255,107,53,.82));
+    backdrop-filter:blur(2px);
     color:#1a0f08;font-family:'Bitter',serif;font-weight:900;
     text-align:center;padding:14px 20px;font-size:15px;
     box-shadow:0 4px 20px rgba(0,0,0,.4);
@@ -458,6 +459,7 @@
     <button id="prestigeBtn">♻️ Rebirth</button>
     <button id="soundBtn">🔊 Sound</button>
     <button id="saveBtn">Save</button>
+    <button id="messageOwnerBtn">💬 Message Owner</button>
   </div>
 
   <div class="section-title">Boosts</div>
@@ -545,6 +547,22 @@
         Shards you'd gain right now: <b id="shardsGain">0</b>
       </div>
       <button class="primary" id="prestigeConfirmBtn">Not ready yet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Message Owner modal -->
+<div class="modal-backdrop" id="messageOwnerModal">
+  <div class="modal-wrap">
+    <div class="modal">
+      <button class="modal-close" id="messageOwnerClose">✕</button>
+      <h2>💬 Message the Owner</h2>
+      <div class="modal-sub">ONLY THE OWNER SEES THIS</div>
+      <p>Send a note straight to the game's owner. Other players never see it — and neither do you again once it's sent.</p>
+      <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:6px;">Your name (optional)</label>
+      <input type="text" id="messageOwnerName" maxlength="20" placeholder="e.g. Alex" style="width:100%;box-sizing:border-box;background:var(--panel-2);border:1px solid var(--ash);border-radius:8px;color:var(--text);padding:9px 10px;font-family:'Bitter',serif;font-size:13px;margin-bottom:12px;">
+      <textarea id="messageOwnerText" maxlength="300" placeholder="Type your message..." style="width:100%;box-sizing:border-box;min-height:90px;background:var(--panel-2);border:1px solid var(--ash);border-radius:8px;color:var(--text);padding:9px 10px;font-family:'Bitter',serif;font-size:13px;resize:vertical;"></textarea>
+      <button class="primary" id="messageOwnerSend" style="margin-top:12px;">Send</button>
     </div>
   </div>
 </div>
@@ -1235,6 +1253,38 @@
     }
   });
 
+  var messageOwnerModal = document.getElementById("messageOwnerModal");
+  document.getElementById("messageOwnerBtn").addEventListener("click", function(){ openModal(messageOwnerModal); });
+  document.getElementById("messageOwnerClose").addEventListener("click", function(){ closeModal(messageOwnerModal); });
+  messageOwnerModal.addEventListener("click", function(e){ if(e.target===messageOwnerModal) closeModal(messageOwnerModal); });
+  document.getElementById("messageOwnerSend").addEventListener("click", function(){
+    var textEl = document.getElementById("messageOwnerText");
+    var nameEl = document.getElementById("messageOwnerName");
+    var message = textEl.value.trim();
+    if(!message){ textEl.focus(); return; }
+    if(!API_BASE_URL){
+      showToast("No server configured — message can't be sent.");
+      return;
+    }
+    var sendBtnEl = document.getElementById("messageOwnerSend");
+    sendBtnEl.disabled = true;
+    fetch(API_BASE_URL + "/api/player-message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: nameEl.value.trim(), message: message, playerId: myPlayerId })
+    })
+      .then(function(r){ if(!r.ok) throw new Error("bad response"); return r.json(); })
+      .then(function(){
+        showToast("Message sent to the owner");
+        textEl.value = "";
+        closeModal(messageOwnerModal);
+      })
+      .catch(function(){
+        showToast("Couldn't reach the server — try again later");
+      })
+      .finally(function(){ sendBtnEl.disabled = false; });
+  });
+
   var soundBtn = document.getElementById("soundBtn");
   function updateSoundBtnLabel(){
     soundBtn.textContent = state.soundOn ? "🔊 Sound" : "🔇 Sound";
@@ -1250,7 +1300,25 @@
   /* ---------------- Leaderboard ---------------- */
   var LB_KEY = "emberFoundryLeaderboard_v1";     // local fallback storage
   var LB_NAME_KEY = "emberFoundryPlayerName_v1";
+  var LB_PLAYER_ID_KEY = "emberFoundryPlayerId_v1";
   var IS_PUBLIC_LB = !!API_BASE_URL;
+
+  // A stable per-browser ID, generated once and reused forever, so the
+  // server can tell "you changing your own name" apart from "someone else
+  // trying to take your name." This never identifies you to other players —
+  // it's just an opaque ID, never shown anywhere.
+  function getOrCreatePlayerId(){
+    var id = null;
+    try{ id = localStorage.getItem(LB_PLAYER_ID_KEY); }catch(e){}
+    if(!id){
+      id = (window.crypto && window.crypto.randomUUID)
+        ? window.crypto.randomUUID()
+        : ("p_" + Date.now() + "_" + Math.random().toString(36).slice(2));
+      try{ localStorage.setItem(LB_PLAYER_ID_KEY, id); }catch(e){}
+    }
+    return id;
+  }
+  var myPlayerId = getOrCreatePlayerId();
 
   // Local (per-browser) fallback, used when API_BASE_URL is blank or unreachable.
   function getLocalLeaderboard(){
@@ -1334,10 +1402,10 @@
     var input = document.getElementById("lbNameInput");
     var name = input.value.trim();
     if(!name){ input.focus(); return; }
-    try{ localStorage.setItem(LB_NAME_KEY, name); }catch(e){}
     var score = Math.floor(totalRate());
 
     if(!IS_PUBLIC_LB){
+      try{ localStorage.setItem(LB_NAME_KEY, name); }catch(e){}
       submitLocal(name, score);
       renderLeaderboard();
       showToast("Score submitted");
@@ -1347,15 +1415,30 @@
     fetch(API_BASE_URL + "/api/leaderboard", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name, score: score })
+      body: JSON.stringify({ name: name, score: score, playerId: myPlayerId })
     })
-      .then(function(r){ if(!r.ok) throw new Error("bad response"); return r.json(); })
+      .then(function(r){
+        if(r.status === 409){
+          throw new Error("NAME_TAKEN");
+        }
+        if(!r.ok) throw new Error("SERVER_UNREACHABLE");
+        return r.json();
+      })
       .then(function(){
+        try{ localStorage.setItem(LB_NAME_KEY, name); }catch(e){}
         showToast("Score submitted — rank updates for everyone");
         renderLeaderboard();
       })
-      .catch(function(){
+      .catch(function(err){
+        if(err.message === "NAME_TAKEN"){
+          // Do NOT fall back to local storage here — the whole point is
+          // that this name belongs to someone else on the shared board.
+          showToast("That name is taken by another player — pick a different one.");
+          input.focus();
+          return;
+        }
         showToast("Couldn't reach the server — saved locally instead");
+        try{ localStorage.setItem(LB_NAME_KEY, name); }catch(e){}
         submitLocal(name, score);
         renderLeaderboard();
       });
@@ -1385,16 +1468,20 @@
 
     function handleEvent(eventType, payload){
       var who = payload.adminName || "Owner";
+      var prefix = payload.mysteryBox ? "🎰 Mystery Box! " : "";
 
       if(eventType === "announcement"){
-        showAnnouncement(payload.message, who);
+        showAnnouncement(prefix + payload.message, who);
+        flashScreen("rgba(255,178,39,0.10)", 700);
 
       } else if(eventType === "gold_rain"){
         var amount = Number(payload.amount) || 0;
         if(amount > 0){
           state.gold += amount;
           state.totalEarned += amount;
-          showAnnouncement("💰 Gold Rain! +" + fmt(amount) + "g", who);
+          showAnnouncement(prefix + "💰 Gold Rain! +" + fmt(amount) + "g", who);
+          spawnEmojiRain(["💰","🪙","✨"], 35);
+          flashScreen("rgba(255,178,39,0.12)", 800);
           renderAll();
         }
 
@@ -1403,7 +1490,10 @@
         var durationMs = Number(payload.durationMs) || 0;
         if(mult > 1 && durationMs > 0){
           activeBoosts.push({ id:"admin_"+Date.now(), mult:mult, endsAt: Date.now()+durationMs });
-          showAnnouncement("🔥 Free Global Boost! x" + mult + " for " + Math.round(durationMs/1000) + "s", who);
+          showAnnouncement(prefix + "🔥 Free Global Boost! x" + mult + " for " + Math.round(durationMs/1000) + "s", who);
+          flashScreen("rgba(255,107,53,0.18)", 900);
+          pulsePanel("#boosts", "rgba(255,107,53,0.6)");
+          glowAnvil("rgba(255,107,53,0.7)", 1400);
           renderAll();
         }
 
@@ -1411,7 +1501,9 @@
         var imDurationMs = Number(payload.durationMs) || 0;
         if(imDurationMs > 0){
           overheatImmuneUntil = Date.now() + imDurationMs;
-          showAnnouncement("🛡️ Overheat Immunity for " + Math.round(imDurationMs/1000) + "s — click away!", who);
+          showAnnouncement(prefix + "🛡️ Overheat Immunity for " + Math.round(imDurationMs/1000) + "s — click away!", who);
+          flashScreen("rgba(127,191,106,0.15)", 800);
+          glowAnvil("rgba(127,191,106,0.8)", 1600);
         }
 
       } else if(eventType === "auto_click"){
@@ -1420,7 +1512,8 @@
         if(acDurationMs > 0 && cps > 0){
           var intervalMs = Math.max(50, Math.round(1000/cps));
           var acEndsAt = Date.now() + acDurationMs;
-          showAnnouncement("🤖 Auto Strike active for " + Math.round(acDurationMs/1000) + "s!", who);
+          showAnnouncement(prefix + "🤖 Auto Strike active for " + Math.round(acDurationMs/1000) + "s!", who);
+          glowAnvil("rgba(200,192,179,0.8)", 1200);
           var acTimer = setInterval(function(){
             if(Date.now() >= acEndsAt){ clearInterval(acTimer); return; }
             if(typeof performStrike === "function") performStrike();
@@ -1433,7 +1526,9 @@
         var fsStation = STATIONS.filter(function(s){ return s.id===fsId; })[0];
         if(fsStation && fsAmount > 0){
           state.stations[fsId] = (state.stations[fsId]||0) + fsAmount;
-          showAnnouncement("🎁 Free " + fsStation.name + " x" + fsAmount + "!", who);
+          showAnnouncement(prefix + "🎁 Free " + fsStation.name + " x" + fsAmount + "!", who);
+          spawnEmojiRain([fsStation.icon || "🎁", "✨"], 24);
+          pulsePanel("#stations", "rgba(255,107,53,0.5)");
           renderAll();
         }
 
@@ -1443,7 +1538,9 @@
         if(fuUpgrade && !state.upgrades[fuId]){
           state.upgrades[fuId] = true;
           fuUpgrade.apply();
-          showAnnouncement("🎁 Free upgrade: " + fuUpgrade.name + "!", who);
+          showAnnouncement(prefix + "🎁 Free upgrade: " + fuUpgrade.name + "!", who);
+          spawnEmojiRain([fuUpgrade.icon || "🔧", "✨"], 24);
+          pulsePanel("#upgrades", "rgba(127,191,106,0.5)");
           renderAll();
         }
 
@@ -1451,10 +1548,131 @@
         var shardAmt = Number(payload.amount) || 0;
         if(shardAmt > 0){
           state.prestigeShards += shardAmt;
-          showAnnouncement("💎 +" + shardAmt + " Ember Shard" + (shardAmt===1?"":"s") + " gifted!", who);
+          showAnnouncement(prefix + "💎 +" + shardAmt + " Ember Shard" + (shardAmt===1?"":"s") + " gifted!", who);
+          spawnEmojiRain(["💎","✨"], 28);
+          flashScreen("rgba(168,132,255,0.14)", 900);
           renderAll();
         }
+
+      } else if(eventType === "confetti"){
+        showAnnouncement(prefix + "🎉 Celebration time!", who);
+        spawnConfetti();
+
+      } else if(eventType === "reset_cooldowns"){
+        BOOSTS.forEach(function(b){ boostCooldownUntil[b.id] = 0; });
+        showAnnouncement(prefix + "♻️ All boost cooldowns cleared — go wild!", who);
+        pulsePanel("#boosts", "rgba(127,191,106,0.6)");
+        renderAll();
       }
+    }
+
+    function spawnConfetti(){
+      var colors = ["#ff6b35","#ffb627","#7fbf6a","#c8c0b3","#a8451f"];
+      for(var i=0;i<60;i++){
+        (function(){
+          var el = document.createElement("div");
+          var color = colors[Math.floor(Math.random()*colors.length)];
+          var startX = Math.random()*window.innerWidth;
+          var size = 6+Math.random()*6;
+          var duration = 1800+Math.random()*1400;
+          el.style.position="fixed";
+          el.style.top="-20px";
+          el.style.left=startX+"px";
+          el.style.width=size+"px";
+          el.style.height=(size*0.6)+"px";
+          el.style.background=color;
+          el.style.opacity="0.9";
+          el.style.zIndex="200";
+          el.style.pointerEvents="none";
+          el.style.transform="rotate("+(Math.random()*360)+"deg)";
+          el.style.transition="transform "+duration+"ms linear, top "+duration+"ms linear, opacity "+duration+"ms linear";
+          document.body.appendChild(el);
+          requestAnimationFrame(function(){
+            el.style.top = (window.innerHeight+20)+"px";
+            el.style.transform="rotate("+(Math.random()*720)+"deg)";
+            el.style.opacity="0";
+          });
+          setTimeout(function(){ el.remove(); }, duration+200);
+        })();
+      }
+    }
+
+    // Rains a chosen set of emoji down from the top of the screen — used to
+    // give each admin event its own distinct visual identity (coins for
+    // gold, gears for stations, gems for shards, etc.).
+    function spawnEmojiRain(emojis, count){
+      count = count || 30;
+      for(var i=0;i<count;i++){
+        (function(){
+          var el = document.createElement("div");
+          var emoji = emojis[Math.floor(Math.random()*emojis.length)];
+          var startX = Math.random()*window.innerWidth;
+          var size = 20+Math.random()*14;
+          var duration = 1600+Math.random()*1200;
+          var delay = Math.random()*400;
+          el.textContent = emoji;
+          el.style.position="fixed";
+          el.style.top="-40px";
+          el.style.left=startX+"px";
+          el.style.fontSize=size+"px";
+          el.style.zIndex="200";
+          el.style.pointerEvents="none";
+          el.style.opacity="0.95";
+          el.style.transition="top "+duration+"ms ease-in, transform "+duration+"ms ease-in, opacity "+duration+"ms ease-in";
+          el.style.transform="rotate(0deg)";
+          document.body.appendChild(el);
+          setTimeout(function(){
+            requestAnimationFrame(function(){
+              el.style.top=(window.innerHeight+40)+"px";
+              el.style.transform="rotate("+(Math.random()*360-180)+"deg)";
+              el.style.opacity="0";
+            });
+          }, delay);
+          setTimeout(function(){ el.remove(); }, duration+delay+200);
+        })();
+      }
+    }
+
+    // Brief full-screen color wash — used for boosts/immunity to make the
+    // whole page visibly react to the event for a moment.
+    function flashScreen(rgba, durationMs){
+      durationMs = durationMs || 900;
+      var el = document.createElement("div");
+      el.style.position="fixed";
+      el.style.inset="0";
+      el.style.background=rgba;
+      el.style.zIndex="150";
+      el.style.pointerEvents="none";
+      el.style.opacity="1";
+      el.style.transition="opacity "+durationMs+"ms ease-out";
+      document.body.appendChild(el);
+      requestAnimationFrame(function(){ el.style.opacity="0"; });
+      setTimeout(function(){ el.remove(); }, durationMs+100);
+    }
+
+    // Temporary glow pulse around a panel — used to draw the eye to
+    // whatever section an event affects (e.g. Boosts on reset_cooldowns).
+    function pulsePanel(selector, glowColor){
+      var el = document.querySelector(selector);
+      if(!el) return;
+      var prevBoxShadow = el.style.boxShadow;
+      var prevTransition = el.style.transition;
+      el.style.transition = "box-shadow .3s ease";
+      el.style.boxShadow = "0 0 0 3px " + glowColor + ", 0 0 24px " + glowColor;
+      setTimeout(function(){
+        el.style.boxShadow = prevBoxShadow;
+        setTimeout(function(){ el.style.transition = prevTransition; }, 350);
+      }, 1400);
+    }
+
+    // Anvil glow — used for overheat immunity and auto strike, so the
+    // anvil itself visibly reacts, not just the banner text.
+    function glowAnvil(color, durationMs){
+      durationMs = durationMs || 1200;
+      var prevBoxShadow = anvil.style.boxShadow;
+      anvil.style.transition = "box-shadow .3s ease";
+      anvil.style.boxShadow = "0 0 0 4px " + color + ", 0 0 40px " + color;
+      setTimeout(function(){ anvil.style.boxShadow = prevBoxShadow; }, durationMs);
     }
 
     // Expose to the click handler below without polluting global scope.
