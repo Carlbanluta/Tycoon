@@ -16,27 +16,43 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ---------------- Leaderboard (unchanged behavior) ----------------
+// ---------------- Leaderboard (name now protected per-player) ----------------
 // In-memory store. Swap for a real database later if you want it to
 // survive server restarts on Render's free tier.
-let leaderboard = []; // { name, score }
+// Each entry now tracks an ownerId (a random ID generated once per browser,
+// stored in that player's localStorage) so a name can't be taken over by
+// someone else — only the original owner of a name can update its score.
+let leaderboard = []; // { name, score, ownerId }
 
 app.get("/api/leaderboard", (req, res) => {
-  const top = [...leaderboard].sort((a, b) => b.score - a.score).slice(0, 50);
+  const top = [...leaderboard]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 50)
+    .map(({ name, score }) => ({ name, score })); // never expose ownerId
   res.json(top);
 });
 
 app.post("/api/leaderboard", (req, res) => {
-  const { name, score } = req.body || {};
-  if (typeof name !== "string" || !name.trim() || typeof score !== "number") {
-    return res.status(400).json({ error: "name (string) and score (number) required" });
+  const { name, score, playerId } = req.body || {};
+  if (typeof name !== "string" || !name.trim() || typeof score !== "number" || typeof playerId !== "string" || !playerId.trim()) {
+    return res.status(400).json({ error: "name (string), score (number), and playerId (string) required" });
   }
   const cleanName = name.trim().slice(0, 16);
-  const existing = leaderboard.find((e) => e.name === cleanName);
-  if (existing) {
-    if (score > existing.score) existing.score = score;
+  const cleanOwnerId = playerId.trim().slice(0, 64);
+
+  const nameTakenByOther = leaderboard.find(
+    (e) => e.name.toLowerCase() === cleanName.toLowerCase() && e.ownerId !== cleanOwnerId
+  );
+  if (nameTakenByOther) {
+    return res.status(409).json({ error: "That name is already taken by another player." });
+  }
+
+  const existingForThisPlayer = leaderboard.find((e) => e.ownerId === cleanOwnerId);
+  if (existingForThisPlayer) {
+    existingForThisPlayer.name = cleanName;
+    if (score > existingForThisPlayer.score) existingForThisPlayer.score = score;
   } else {
-    leaderboard.push({ name: cleanName, score });
+    leaderboard.push({ name: cleanName, score, ownerId: cleanOwnerId });
   }
   res.json({ ok: true });
 });
@@ -73,7 +89,10 @@ const ALLOWED_EVENT_TYPES = new Set([
   "auto_click",
   "free_station",
   "free_upgrade",
-  "shard_gift"
+  "shard_gift",
+  "confetti",
+  "reset_cooldowns",
+  "mystery_box"
 ]);
 
 // Kept in sync with the station/upgrade ids in the game's index.html.
@@ -138,6 +157,32 @@ app.post("/api/admin-event", (req, res) => {
     const amount = Number(payload && payload.amount);
     if (!isFinite(amount) || amount <= 0) return res.status(400).json({ error: "amount must be a positive number" });
     cleanPayload = { amount };
+  } else if (eventType === "confetti") {
+    cleanPayload = {}; // purely visual, no data needed
+  } else if (eventType === "reset_cooldowns") {
+    cleanPayload = {}; // tells clients to clear their local boost cooldown timers
+  } else if (eventType === "mystery_box") {
+    // Resolve into a random real reward server-side, then broadcast that
+    // resolved event (flagged as mysteryBox) so every player gets the
+    // same surprise reward from a single button press.
+    const stationIds = [...VALID_STATION_IDS];
+    const options = [
+      () => ({ eventType: "gold_rain", payload: { amount: 500 + Math.floor(Math.random() * 4500) } }),
+      () => ({ eventType: "shard_gift", payload: { amount: 1 + Math.floor(Math.random() * 3) } }),
+      () => ({ eventType: "free_station", payload: { stationId: stationIds[Math.floor(Math.random() * stationIds.length)], amount: 1 } })
+    ];
+    const resolved = options[Math.floor(Math.random() * options.length)]();
+    // Overwrite eventType/cleanPayload with the resolved reward, but keep
+    // a flag so the client shows "Mystery Box" flavor text instead of the
+    // plain reward text.
+    req.body.eventType = resolved.eventType; // for logging/consistency only
+    cleanPayload = { ...resolved.payload, mysteryBox: true };
+    // Re-run through the same broadcast path but under the resolved type.
+    const adminName = (payload && payload.adminName ? String(payload.adminName) : "Owner").trim().slice(0, 20) || "Owner";
+    cleanPayload.adminName = adminName;
+    lastEvent = { eventType: resolved.eventType, payload: cleanPayload, sentAt: Date.now() };
+    broadcastEvent(lastEvent);
+    return res.json({ ok: true, resolved: resolved.eventType });
   }
 
   // Attach the sender's display name (defaults to "Owner") to every event
@@ -164,7 +209,60 @@ function broadcastEvent(evt) {
   });
 }
 
-wss.on("connection", (ws) => {
+// ---------------- Player → Owner chat (one-way, admin-only visibility) ----------------
+// Players can send a short message to the owner. Only the admin page (which
+// authenticates its WebSocket connection with ADMIN_KEY) receives these —
+// regular players never see anyone else's messages, including their own
+// after sending, beyond a local "sent" confirmation in their own browser.
+const MAX_STORED_MESSAGES = 200;
+let playerMessages = []; // { name, message, sentAt }
+
+function broadcastToAdmins(data) {
+  wss.clients.forEach((client) => {
+    if (client.readyState === 1 && client.isAdmin) {
+      client.send(data);
+    }
+  });
+}
+
+app.post("/api/player-message", (req, res) => {
+  const { name, message, playerId } = req.body || {};
+  const cleanMessage = (typeof message === "string" ? message : "").trim().slice(0, 300);
+  if (!cleanMessage) {
+    return res.status(400).json({ error: "message required" });
+  }
+  const cleanName = (typeof name === "string" && name.trim() ? name.trim().slice(0, 20) : "Anonymous player");
+
+  const entry = { name: cleanName, message: cleanMessage, sentAt: Date.now() };
+  playerMessages.push(entry);
+  if (playerMessages.length > MAX_STORED_MESSAGES) {
+    playerMessages = playerMessages.slice(-MAX_STORED_MESSAGES);
+  }
+
+  broadcastToAdmins(JSON.stringify({ type: "player_message", ...entry }));
+  res.json({ ok: true });
+});
+
+// Only the admin page can read message history — requires ADMIN_KEY.
+app.get("/api/player-messages", (req, res) => {
+  const providedKey = req.header("x-admin-key");
+  if (!ADMIN_KEY || providedKey !== ADMIN_KEY) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+  res.json(playerMessages.slice(-100));
+});
+
+wss.on("connection", (ws, req) => {
+  // Admin page connects with ?adminKey=... in the WebSocket URL so it can
+  // be flagged to receive player chat messages. Regular players never send
+  // this parameter, so they're never marked as admin sockets.
+  let requestedAdminKey = null;
+  try {
+    const url = new URL(req.url, "http://localhost");
+    requestedAdminKey = url.searchParams.get("adminKey");
+  } catch (e) {}
+  ws.isAdmin = !!ADMIN_KEY && requestedAdminKey === ADMIN_KEY;
+
   // Send the most recent event immediately so new/reopened pages aren't
   // stuck waiting for the next broadcast. Note: this only replays the
   // announcement type usefully (a stale gold_rain/boost from minutes ago
@@ -178,6 +276,16 @@ wss.on("connection", (ws) => {
     }
   }
   ws.on("error", () => {});
+});
+
+// ---------------- Live player count ----------------
+// Every player's game keeps a WebSocket connection open (the same one used
+// for admin events), so the number of open connections is a reasonable
+// live count of people with the game open right now. This is read-only —
+// no admin key required — since it reveals nothing about any individual
+// player's save data, only a headcount.
+app.get("/api/player-count", (req, res) => {
+  res.json({ count: wss.clients.size });
 });
 
 const PORT = process.env.PORT || 3000;
