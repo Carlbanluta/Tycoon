@@ -1,17 +1,16 @@
 {
-  "name": "ember-foundry-leaderboard",
+  "name": "ember-foundry",
   "version": "1.0.0",
-  "description": "Public leaderboard backend for the Ember Foundry tycoon game",
+  "description": "Ember Foundry multiplayer tycoon",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
   },
+  "dependencies": {
+    "express": "^4.21.2",
+    "ws": "^8.18.0"
+  },
   "engines": {
     "node": ">=18"
-  },
-  "dependencies": {
-  "cors": "^2.8.5",
-  "express": "^4.19.2",
-  "ws": "^8.18.0"
   }
 }
