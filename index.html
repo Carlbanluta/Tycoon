@@ -1046,17 +1046,7 @@
     requestAnimationFrame(tickOverheatLabel);
   }
 
-  anvil.addEventListener("click", function(e){
-    if(isOverheated) return;
-
-    var now = Date.now();
-    clickTimestamps.push(now);
-    clickTimestamps = clickTimestamps.filter(function(t){ return now - t < CLICK_WINDOW_MS; });
-    if(clickTimestamps.length > CLICK_LIMIT){
-      startOverheat();
-      return;
-    }
-
+  function performStrike(){
     var gain = clickPower();
     state.gold += gain;
     state.totalEarned += gain;
@@ -1068,6 +1058,21 @@
     renderStations();
     renderUpgrades();
     checkAchievements();
+  }
+
+  anvil.addEventListener("click", function(e){
+    var immune = !!(window.__isOverheatImmune && window.__isOverheatImmune());
+    if(isOverheated && !immune) return;
+
+    var now = Date.now();
+    clickTimestamps.push(now);
+    clickTimestamps = clickTimestamps.filter(function(t){ return now - t < CLICK_WINDOW_MS; });
+    if(clickTimestamps.length > CLICK_LIMIT && !immune){
+      startOverheat();
+      return;
+    }
+
+    performStrike();
   });
 
   function spawnSpark(amount){
@@ -1356,22 +1361,104 @@
       });
   });
 
-  /* ---------------- Owner announcements (one-way chat) ---------------- */
+  /* ---------------- Owner admin events (one-way, real-time) ---------------- */
   // Connects to the same backend as the leaderboard, over WebSocket, and
-  // displays whatever the owner broadcasts. This never reads or writes
-  // localStorage, so it cannot affect anyone's saved progress.
-  (function initAnnouncements(){
+  // reacts to whatever event the owner broadcasts. Gold Rain and Global
+  // Boost apply directly to THIS player's own local state — there is no
+  // shared server-side wallet, so this can never desync or reset anyone
+  // else's save. Nothing here reads or writes any other player's data.
+  (function initAdminEvents(){
     if (!API_BASE_URL) return; // no backend configured, skip entirely
 
     var announceToastEl = document.getElementById("announceToast");
     var announceTimer = null;
-    function showAnnouncement(msg){
-  if(!announceToastEl) return;
-  announceToastEl.textContent = "📢 " + msg;
+    function showAnnouncement(msg, adminName){
+      if(!announceToastEl) return;
+      var who = adminName ? ("👑 Owner " + adminName) : "📢";
+      announceToastEl.textContent = who + ": " + msg;
       announceToastEl.classList.add("show");
       clearTimeout(announceTimer);
       announceTimer = setTimeout(function(){ announceToastEl.classList.remove("show"); }, 15000);
     }
+
+    var overheatImmuneUntil = 0;
+
+    function handleEvent(eventType, payload){
+      var who = payload.adminName || "Owner";
+
+      if(eventType === "announcement"){
+        showAnnouncement(payload.message, who);
+
+      } else if(eventType === "gold_rain"){
+        var amount = Number(payload.amount) || 0;
+        if(amount > 0){
+          state.gold += amount;
+          state.totalEarned += amount;
+          showAnnouncement("💰 Gold Rain! +" + fmt(amount) + "g", who);
+          renderAll();
+        }
+
+      } else if(eventType === "global_boost"){
+        var mult = Number(payload.mult) || 1;
+        var durationMs = Number(payload.durationMs) || 0;
+        if(mult > 1 && durationMs > 0){
+          activeBoosts.push({ id:"admin_"+Date.now(), mult:mult, endsAt: Date.now()+durationMs });
+          showAnnouncement("🔥 Free Global Boost! x" + mult + " for " + Math.round(durationMs/1000) + "s", who);
+          renderAll();
+        }
+
+      } else if(eventType === "overheat_immunity"){
+        var imDurationMs = Number(payload.durationMs) || 0;
+        if(imDurationMs > 0){
+          overheatImmuneUntil = Date.now() + imDurationMs;
+          showAnnouncement("🛡️ Overheat Immunity for " + Math.round(imDurationMs/1000) + "s — click away!", who);
+        }
+
+      } else if(eventType === "auto_click"){
+        var cps = Number(payload.clicksPerSecond) || 3;
+        var acDurationMs = Number(payload.durationMs) || 0;
+        if(acDurationMs > 0 && cps > 0){
+          var intervalMs = Math.max(50, Math.round(1000/cps));
+          var acEndsAt = Date.now() + acDurationMs;
+          showAnnouncement("🤖 Auto Strike active for " + Math.round(acDurationMs/1000) + "s!", who);
+          var acTimer = setInterval(function(){
+            if(Date.now() >= acEndsAt){ clearInterval(acTimer); return; }
+            if(typeof performStrike === "function") performStrike();
+          }, intervalMs);
+        }
+
+      } else if(eventType === "free_station"){
+        var fsId = payload.stationId;
+        var fsAmount = Number(payload.amount) || 1;
+        var fsStation = STATIONS.filter(function(s){ return s.id===fsId; })[0];
+        if(fsStation && fsAmount > 0){
+          state.stations[fsId] = (state.stations[fsId]||0) + fsAmount;
+          showAnnouncement("🎁 Free " + fsStation.name + " x" + fsAmount + "!", who);
+          renderAll();
+        }
+
+      } else if(eventType === "free_upgrade"){
+        var fuId = payload.upgradeId;
+        var fuUpgrade = UPGRADES.filter(function(u){ return u.id===fuId; })[0];
+        if(fuUpgrade && !state.upgrades[fuId]){
+          state.upgrades[fuId] = true;
+          fuUpgrade.apply();
+          showAnnouncement("🎁 Free upgrade: " + fuUpgrade.name + "!", who);
+          renderAll();
+        }
+
+      } else if(eventType === "shard_gift"){
+        var shardAmt = Number(payload.amount) || 0;
+        if(shardAmt > 0){
+          state.prestigeShards += shardAmt;
+          showAnnouncement("💎 +" + shardAmt + " Ember Shard" + (shardAmt===1?"":"s") + " gifted!", who);
+          renderAll();
+        }
+      }
+    }
+
+    // Expose to the click handler below without polluting global scope.
+    window.__isOverheatImmune = function(){ return Date.now() < overheatImmuneUntil; };
 
     var wsUrl = API_BASE_URL.replace(/^http/, "ws") + "/ws";
     var socket;
@@ -1381,12 +1468,9 @@
       socket.onmessage = function(evt){
         try{
           var data = JSON.parse(evt.data);
-          if(data.type === "announcement" && data.message){
-  showAnnouncement(
-    data.message,
-    data.adminName
-  );
-  }
+          if(data.type === "admin_event" && data.eventType){
+            handleEvent(data.eventType, data.payload || {});
+          }
         }catch(e){}
       };
       socket.onclose = function(){
