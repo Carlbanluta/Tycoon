@@ -1457,7 +1457,7 @@
     var announceTimer = null;
     function showAnnouncement(msg, adminName){
       if(!announceToastEl) return;
-      var who = adminName ? ("👑 Owner " + adminName) : "📢";
+      var who = adminName ? ("[👑 Owner] " + adminName) : "📢";
       announceToastEl.textContent = who + ": " + msg;
       announceToastEl.classList.add("show");
       clearTimeout(announceTimer);
