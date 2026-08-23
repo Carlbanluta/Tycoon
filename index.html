@@ -2567,9 +2567,10 @@
           "chat-message";
 
         var isOwner =
-          String(m.name || "")
-            .toLowerCase() ===
-          OWNER_NAME.toLowerCase();
+  !!m.owner ||
+  String(m.name || "")
+    .toLowerCase() ===
+  OWNER_NAME.toLowerCase();
 
         var displayName =
           isOwner
@@ -2676,11 +2677,15 @@
             "global_chat"
           ){
 
-            chatMessages.push({
-              name:data.name,
-              message:data.message,
-              sentAt:data.sentAt
-            });
+            var msg = (data.message && typeof data.message === "object")
+  ? data.message
+  : data;
+chatMessages.push({
+  name: msg.name,
+  message: msg.message,
+  sentAt: msg.sentAt,
+  owner: !!msg.owner
+});
 
             if(chatMessages.length > 100){
               chatMessages =
@@ -2773,9 +2778,10 @@
         },
 
         body:JSON.stringify({
-          name:name,
-          message:message
-        })
+  name:name,
+  message:message,
+  playerId:myPlayerId
+})
       }
     )
     .then(function(r){
