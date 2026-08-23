@@ -1468,17 +1468,6 @@
     return value;
   }
 
-  /*
-    Minimum gap between clicks that still earn gold.
-    This used to be 125ms, which sounds generous but actually
-    dropped most clicks during normal excited mashing/tapping —
-    each rejected click silently did nothing (no gold, easy to
-    miss the small toast), which read as "the click button doesn't
-    work". 45ms (~22 clicks/sec) still blocks bots/macros without
-    eating real human clicks.
-  */
-  var OVERHEAT_GAP_MS = 45;
-
   function strike(){
 
     if(
@@ -1489,7 +1478,7 @@
 
       if(
         window.__lastStrike &&
-        now - window.__lastStrike < OVERHEAT_GAP_MS
+        now - window.__lastStrike < 125
       ){
         showToast("🔥 The anvil is overheating!");
         return;
@@ -1594,7 +1583,7 @@
 
     if(
       window.__lastStrike &&
-      Date.now() - window.__lastStrike < OVERHEAT_GAP_MS
+      Date.now() - window.__lastStrike < 125
     ){
       badge.style.display = "block";
       badge.textContent = "Cooling down…";
@@ -2638,46 +2627,6 @@
     }
   }
 
-  function loadChatHistory(){
-
-    if(!API_BASE_URL){
-      return;
-    }
-
-    fetch(
-      API_BASE_URL +
-      "/api/global-chat"
-    )
-    .then(function(r){
-
-      if(!r.ok){
-        throw new Error("bad response");
-      }
-
-      return r.json();
-    })
-    .then(function(list){
-
-      if(!Array.isArray(list)){
-        return;
-      }
-
-      chatMessages = list
-        .map(function(m){
-
-          return {
-            name:m.name,
-            message:m.message,
-            sentAt:m.sentAt
-          };
-        })
-        .slice(-100);
-
-      renderChat();
-    })
-    .catch(function(){});
-  }
-
   function connectGlobalChat(){
 
     if(!API_BASE_URL){
@@ -2695,8 +2644,6 @@
         chatSocket.close();
       }catch(e){}
     }
-
-    loadChatHistory();
 
     var wsUrl =
       API_BASE_URL
@@ -2729,24 +2676,10 @@
             "global_chat"
           ){
 
-            /*
-              The server broadcasts the chat entry
-              nested inside `message`, i.e.
-              { type:"global_chat", message:{name,message,sentAt,...} }
-              — not flattened onto `data` directly.
-              Reading data.name/data.message here (instead of
-              data.message.name/data.message.message) is what
-              made every incoming chat show up as "Anonymous"
-              with a broken message body.
-            */
-
-            var incoming =
-              data.message || {};
-
             chatMessages.push({
-              name:incoming.name,
-              message:incoming.message,
-              sentAt:incoming.sentAt
+              name:data.name,
+              message:data.message,
+              sentAt:data.sentAt
             });
 
             if(chatMessages.length > 100){
@@ -2791,8 +2724,8 @@
 
     var message =
       $("chatText")
-        .value
-        .trim();
+      .value
+      .trim();
 
     if(!name){
 
@@ -2935,6 +2868,13 @@
 
       payload =
         payload || {};
+
+      // ★★★ THIS IS THE NEW RESET HANDLER ★★★
+      if(eventType === "reset_all_progress"){
+        clearLocalProgress();
+        showToast("🔥 Carl reset all player progress");
+        return;
+      }
 
       if(eventType === "announcement"){
 
