@@ -21,9 +21,12 @@
     --text:#ece5d8;
     --text-dim:#9c9184;
   }
+
   *{box-sizing:border-box;}
+
   html,body{
-    margin:0;padding:0;
+    margin:0;
+    padding:0;
     background:var(--void);
     color:var(--text);
     font-family:'Bitter',serif;
@@ -31,397 +34,618 @@
     -webkit-tap-highlight-color:transparent;
     user-select:none;
   }
-  ::selection{background:var(--ember);color:var(--void);}
+
+  ::selection{
+    background:var(--ember);
+    color:var(--void);
+  }
 
   .noise{
-    position:fixed;inset:0;pointer-events:none;z-index:1;
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    z-index:1;
     opacity:.035;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
   header{
-    position:sticky;top:0;z-index:10;
-    display:flex;align-items:center;justify-content:space-between;
-    padding:14px 18px;
-    background:linear-gradient(180deg, var(--panel) 0%, rgba(29,22,16,.96) 100%);
+    position:relative;
+    z-index:2;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:15px;
+    padding:18px 20px;
     border-bottom:1px solid var(--ash);
+    background:rgba(18,13,10,.96);
   }
-  .brand{display:flex;align-items:baseline;gap:10px;}
-  .brand .mark{font-size:22px;}
-  .brand h1{
-    font-family:'Bitter',serif;font-weight:900;
-    font-size:17px;letter-spacing:.06em;text-transform:uppercase;
-    margin:0;color:var(--ember-hot);
-  }
-  .brand span.sub{font-size:10px;color:var(--text-dim);letter-spacing:.14em;text-transform:uppercase;}
 
-  .gold-readout{text-align:right;}
-  .gold-readout .amt{
-    font-family:'JetBrains Mono',monospace;font-weight:700;
-    font-size:20px;color:var(--ember-hot);
-    text-shadow:0 0 14px rgba(255,107,53,.35);
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
   }
+
+  .mark{
+    font-size:32px;
+    filter:drop-shadow(0 0 12px rgba(255,107,53,.45));
+  }
+
+  h1{
+    margin:0;
+    font-size:23px;
+    line-height:1;
+    font-weight:900;
+  }
+
+  .sub{
+    display:block;
+    margin-top:5px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+  }
+
+  .gold-readout{
+    text-align:right;
+  }
+
+  .gold-readout .amt{
+    font-size:25px;
+    font-weight:900;
+  }
+
   .gold-readout .rate{
-    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--good);
+    color:var(--ember-hot);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+  }
+
+  .boost-status{
+    margin-top:3px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
   }
 
   main{
-    max-width:920px;margin:0 auto;
-    padding:18px 14px 40px;
-    position:relative;z-index:2;
-  }
-
-  /* ---- Forge / signature element ---- */
-  .forge-wrap{
     position:relative;
-    display:flex;flex-direction:column;align-items:center;
-    padding:26px 10px 18px;
-    margin-bottom:20px;
+    z-index:2;
+    max-width:1000px;
+    margin:auto;
+    padding:24px 18px 80px;
   }
+
+  .forge-wrap{
+    text-align:center;
+    margin:12px auto 25px;
+  }
+
   .forge-glow{
-    position:absolute;top:10%;left:50%;transform:translateX(-50%);
-    width:280px;height:280px;border-radius:50%;
-    background:radial-gradient(circle, rgba(255,107,53,.30) 0%, rgba(255,107,53,0) 70%);
-    filter:blur(4px);
-    animation:pulse 2.6s ease-in-out infinite;
+    position:absolute;
+    left:50%;
+    transform:translateX(-50%);
+    width:300px;
+    height:190px;
+    background:radial-gradient(ellipse,rgba(255,107,53,.16),transparent 68%);
     pointer-events:none;
   }
-  @keyframes pulse{
-    0%,100%{opacity:.65;transform:translateX(-50%) scale(1);}
-    50%{opacity:1;transform:translateX(-50%) scale(1.08);}
-  }
+
   #anvil{
-    position:relative;z-index:2;
-    width:190px;height:190px;
-    border-radius:16px;
-    display:flex;align-items:center;justify-content:center;
-    font-size:76px;
+    position:relative;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    width:180px;
+    height:145px;
+    font-size:90px;
     cursor:pointer;
-    background:
-      radial-gradient(circle at 50% 35%, rgba(255,178,39,.22), transparent 60%),
-      linear-gradient(155deg, #2a2018 0%, #1a130d 100%);
-    border:2px solid var(--ash);
-    box-shadow:
-      inset 0 0 40px rgba(255,107,53,.10),
-      0 10px 30px rgba(0,0,0,.55);
-    transition:transform .08s ease;
-  }
-  #anvil:active{transform:scale(.94);}
-  #anvil.hit{animation:shake .18s ease;}
-  @keyframes shake{
-    0%{transform:translate(0,0) rotate(0);}
-    25%{transform:translate(-3px,2px) rotate(-1.2deg);}
-    50%{transform:translate(3px,-2px) rotate(1.2deg);}
-    75%{transform:translate(-2px,1px) rotate(-.6deg);}
-    100%{transform:translate(0,0) rotate(0);}
-  }
-  .click-power{
-    margin-top:12px;
-    font-family:'JetBrains Mono',monospace;
-    font-size:12px;color:var(--text-dim);
-    letter-spacing:.04em;
-  }
-  .click-power b{color:var(--ember);}
-
-  .spark{
-    position:absolute;z-index:3;pointer-events:none;
-    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;
-    color:var(--ember-hot);
-    animation:rise .75s ease-out forwards;
-    text-shadow:0 0 8px rgba(255,107,53,.6);
-  }
-  @keyframes rise{
-    0%{opacity:1;transform:translateY(0) scale(1);}
-    100%{opacity:0;transform:translateY(-60px) scale(1.15);}
-  }
-  .ember-particle{
-    position:absolute;z-index:3;pointer-events:none;
-    width:4px;height:4px;border-radius:50%;
-    background:var(--ember-hot);
-    box-shadow:0 0 6px 1px rgba(255,178,39,.8);
-    animation:fly .6s ease-out forwards;
-  }
-  @keyframes fly{
-    0%{opacity:1;transform:translate(0,0);}
-    100%{opacity:0;transform:var(--fly-to);}
+    transition:transform .06s;
+    filter:drop-shadow(0 0 15px rgba(255,107,53,.2));
   }
 
-  /* ---- Section headers ---- */
-  .section-title{
-    display:flex;align-items:center;gap:10px;
-    margin:26px 0 12px;
-    font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--iron);
-  }
-  .section-title::after{
-    content:"";flex:1;height:1px;background:var(--ash);
+  #anvil:active{
+    transform:scale(.94);
   }
 
-  /* ---- Stations (generators) ---- */
-  .station{
-    display:flex;align-items:center;gap:12px;
-    padding:12px 14px;
-    margin-bottom:8px;
-    background:var(--panel);
-    border:1px solid var(--ash);
-    border-radius:10px;
-    cursor:pointer;
-    transition:border-color .15s, background .15s, transform .08s;
-  }
-  .station:active{transform:scale(.99);}
-  .station.affordable{border-color:var(--ember-dim);}
-  .station.affordable:hover{border-color:var(--ember);background:var(--panel-2);}
-  .station.locked{opacity:.4;cursor:default;}
-  .station .icon{
-    font-size:28px;width:40px;text-align:center;flex-shrink:0;
-  }
-  .station .info{flex:1;min-width:0;}
-  .station .name{
-    font-weight:700;font-size:14px;color:var(--text);
-    display:flex;align-items:center;gap:8px;
-  }
-  .station .name .owned{
-    font-family:'JetBrains Mono',monospace;font-size:11px;
-    color:var(--void);background:var(--ember-hot);
-    padding:1px 6px;border-radius:20px;font-weight:700;
-  }
-  .station .desc{
-    font-size:11px;color:var(--text-dim);
-    font-family:'JetBrains Mono',monospace;
-    margin-top:2px;
-  }
-  .station .buy{
-    text-align:right;flex-shrink:0;
-  }
-  .station .cost{
-    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;
-    color:var(--ember-hot);
-  }
-  .station .cost.cant-afford{color:var(--iron);}
-  .station .rate{
-    font-family:'JetBrains Mono',monospace;font-size:10px;
-    color:var(--good);
-  }
-
-  /* ---- Upgrades ---- */
-  .upgrade{
-    display:flex;align-items:center;gap:12px;
-    padding:11px 14px;margin-bottom:8px;
-    background:var(--panel);border:1px solid var(--ash);border-radius:10px;
-    cursor:pointer;transition:border-color .15s,transform .08s;
-  }
-  .upgrade:active{transform:scale(.99);}
-  .upgrade.affordable{border-color:#5c8a4f;}
-  .upgrade.affordable:hover{background:var(--panel-2);}
-  .upgrade.bought{opacity:.35;cursor:default;}
-  .upgrade .icon{font-size:22px;width:34px;text-align:center;}
-  .upgrade .info{flex:1;}
-  .upgrade .name{font-weight:700;font-size:13px;}
-  .upgrade .desc{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
-  .upgrade .cost{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--good);flex-shrink:0;}
-
-  .empty-note{
-    font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;
-    text-align:center;padding:10px;
-  }
-
-  /* ---- Footer / controls ---- */
-  .toolbar{
-    display:flex;justify-content:center;gap:6px;
-    margin:4px 0 6px;
-    flex-wrap:wrap;
-  }
-  .toolbar button{
-    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.03em;
-    text-transform:uppercase;
-    background:var(--panel);color:var(--text-dim);
-    border:1px solid var(--ash);border-radius:7px;
-    padding:6px 10px;cursor:pointer;
-  }
-  .toolbar button:active{background:var(--panel-2);}
-
-  .toast{
-    position:fixed;top:70px;left:50%;transform:translateX(-50%);
-    background:var(--panel-2);border:1px solid var(--ember);
-    color:var(--text);padding:8px 16px;border-radius:8px;
-    font-family:'JetBrains Mono',monospace;font-size:12px;
-    z-index:20;opacity:0;pointer-events:none;
-    transition:opacity .3s, transform .3s;
-  }
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(6px);}
-
-  .announce-banner{
-    position:fixed;top:0;left:0;right:0;z-index:100;
-    background:linear-gradient(90deg, rgba(168,69,31,.82), rgba(255,107,53,.82));
-    backdrop-filter:blur(2px);
-    color:#1a0f08;font-family:'Bitter',serif;font-weight:900;
-    text-align:center;padding:14px 20px;font-size:15px;
-    box-shadow:0 4px 20px rgba(0,0,0,.4);
-    transform:translateY(-100%);transition:transform .3s ease;
-    pointer-events:none;
-  }
-  .announce-banner.show{transform:translateY(0);}
-
-  @media (prefers-reduced-motion: reduce){
-    .forge-glow,#anvil.hit,.spark,.ember-particle{animation:none !important;}
-  }
-
-  /* ---- Modal (intro + leaderboard) ---- */
-  .modal-backdrop{
-    position:fixed;inset:0;z-index:50;
-    background:rgba(10,7,5,.82);
-    display:flex;align-items:center;justify-content:center;
-    padding:20px;
-    opacity:0;pointer-events:none;
-    transition:opacity .2s;
-  }
-  .modal-backdrop.show{opacity:1;pointer-events:auto;}
-  .modal-wrap{position:relative;width:100%;max-width:420px;}
-  .modal{
-    width:100%;max-height:82vh;overflow-y:auto;
-    background:var(--panel);border:1px solid var(--ash);border-radius:14px;
-    padding:22px 20px;
-    box-shadow:0 20px 60px rgba(0,0,0,.6);
-  }
-  .modal h2{
-    margin:0 0 4px;font-size:18px;color:var(--ember-hot);
-    display:flex;align-items:center;gap:8px;
-  }
-  .modal .modal-sub{
-    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);
-    margin-bottom:16px;letter-spacing:.04em;
-  }
-  .modal p{font-size:13px;line-height:1.55;color:var(--text);margin:0 0 12px;}
-  .modal ul{margin:0 0 14px;padding-left:18px;}
-  .modal li{font-size:13px;line-height:1.6;color:var(--text);margin-bottom:4px;}
-  .modal .note-box{
-    background:var(--panel-2);border:1px solid var(--ash);border-radius:8px;
-    padding:10px 12px;margin-bottom:16px;
-    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ember-hot);
-    line-height:1.6;
-  }
-  .modal button.primary{
-    width:100%;padding:12px;border-radius:8px;border:none;
-    background:var(--ember);color:#1a0f08;font-weight:700;
-    font-family:'Bitter',serif;font-size:14px;cursor:pointer;
-    text-transform:uppercase;letter-spacing:.04em;
-  }
-  .modal button.primary:active{background:var(--ember-hot);}
-  .modal .modal-close{
-    position:absolute;top:14px;right:16px;
-    background:none;border:none;color:var(--text-dim);
-    font-size:20px;cursor:pointer;line-height:1;
-  }
-
-  /* ---- Overheat cooldown ---- */
   .overheat-badge{
-    position:absolute;top:-10px;left:50%;transform:translateX(-50%);
-    background:var(--panel-2);border:1px solid var(--ember);
-    color:var(--ember-hot);font-family:'JetBrains Mono',monospace;
-    font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;
+    position:absolute;
+    top:-5px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:3;
+    display:none;
+    padding:4px 9px;
+    border:1px solid var(--ember-dim);
+    border-radius:20px;
+    background:var(--panel);
+    color:var(--ember-hot);
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
     white-space:nowrap;
-    opacity:0;pointer-events:none;transition:opacity .15s;
-    z-index:5;
-  }
-  .overheat-badge.show{opacity:1;}
-  #anvil.overheated{
-    filter:grayscale(.5) brightness(.7);
-    cursor:not-allowed;
   }
 
-  /* ---- Leaderboard ---- */
-  .lb-form{display:flex;gap:8px;margin-bottom:14px;}
-  .lb-form input{
-    flex:1;min-width:0;
-    background:var(--panel-2);border:1px solid var(--ash);border-radius:8px;
-    color:var(--text);padding:9px 10px;font-family:'Bitter',serif;font-size:13px;
+  .click-power{
+    margin-top:-4px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
   }
-  .lb-form input:focus{outline:1px solid var(--ember);}
-  .lb-form button{
-    flex-shrink:0;background:var(--ember);color:#1a0f08;border:none;
-    border-radius:8px;padding:9px 14px;font-weight:700;font-size:12px;cursor:pointer;
+
+  .toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:25px;
   }
-  .lb-list{list-style:none;margin:0;padding:0;}
-  .lb-list li{
-    display:flex;align-items:center;gap:10px;
-    padding:9px 4px;border-bottom:1px solid var(--ash);
+
+  button{
+    border:1px solid var(--ash);
+    border-radius:7px;
+    padding:9px 12px;
+    background:var(--panel);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    cursor:pointer;
+    transition:.15s;
+  }
+
+  button:hover{
+    border-color:var(--ember-dim);
+    background:var(--panel-2);
+  }
+
+  button:active{
+    transform:translateY(1px);
+  }
+
+  button.primary{
+    border-color:var(--ember-dim);
+    background:linear-gradient(135deg,#4a2114,#32170f);
+    color:var(--ember-hot);
+  }
+
+  button.sound-off{
+    opacity:.65;
+  }
+
+  .section-title{
+    margin:25px 0 10px;
+    padding-bottom:7px;
+    border-bottom:1px solid var(--ash);
+    color:var(--ember-hot);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+  }
+
+  .boost-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+    gap:9px;
+  }
+
+  .boost-card,
+  .station,
+  .upgrade{
+    border:1px solid var(--ash);
+    border-radius:9px;
+    background:var(--panel);
+  }
+
+  .boost-card{
+    padding:12px;
+  }
+
+  .boost-card .name{
+    font-weight:700;
     font-size:13px;
   }
-  .lb-list li:last-child{border-bottom:none;}
-  .lb-rank{
-    font-family:'JetBrains Mono',monospace;font-weight:700;
-    width:22px;text-align:center;color:var(--iron);flex-shrink:0;
-  }
-  .lb-list li.me .lb-rank{color:var(--ember-hot);}
-  .lb-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .lb-score{font-family:'JetBrains Mono',monospace;color:var(--good);flex-shrink:0;}
-  .lb-empty{font-size:12px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;text-align:center;padding:16px 0;}
-  .lb-note{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;margin-top:10px;line-height:1.5;}
 
-  /* ---- Boosts ---- */
-  .boost-grid{
-    display:grid;grid-template-columns:1fr 1fr;gap:8px;
-    margin-bottom:8px;
+  .boost-card .desc{
+    margin-top:4px;
+    color:var(--text-dim);
+    font-size:10px;
+    line-height:1.4;
   }
-  .boost-card{
-    display:flex;flex-direction:column;gap:4px;
-    padding:12px 12px;
-    background:var(--panel);border:1px solid var(--ash);border-radius:10px;
-    cursor:pointer;transition:border-color .15s, transform .08s;
-    position:relative;overflow:hidden;
+
+  .boost-card button{
+    width:100%;
+    margin-top:9px;
   }
-  .boost-card:active{transform:scale(.98);}
-  .boost-card.affordable{border-color:var(--ember-dim);}
-  .boost-card.affordable:hover{border-color:var(--ember);}
-  .boost-card.cooldown{opacity:.5;cursor:not-allowed;}
-  .boost-card .bc-top{display:flex;align-items:center;gap:8px;}
-  .boost-card .bc-icon{font-size:22px;}
-  .boost-card .bc-mult{
-    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;
+
+  #stations,
+  #upgrades{
+    display:grid;
+    gap:9px;
+  }
+
+  .station{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:12px;
+    align-items:center;
+    padding:13px;
+  }
+
+  .station-info .name,
+  .upgrade .name{
+    font-weight:900;
+    font-size:14px;
+  }
+
+  .station-info .desc,
+  .upgrade .desc{
+    margin-top:3px;
+    color:var(--text-dim);
+    font-size:10px;
+    line-height:1.4;
+  }
+
+  .station-info .owned{
+    margin-top:5px;
     color:var(--ember-hot);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
   }
-  .boost-card .bc-name{font-size:12px;font-weight:700;color:var(--text);}
-  .boost-card .bc-desc{font-size:10px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
-  .boost-card .bc-cost{
-    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--good);
-    margin-top:2px;
-  }
-  .boost-card .bc-cost.cant-afford{color:var(--iron);}
-  .boost-card .bc-cd{
-    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ember);
-    margin-top:2px;
-  }
-  .boost-status{
-    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ember-hot);
-    display:none;align-items:center;gap:4px;margin-top:2px;
-  }
-  .boost-status.show{display:flex;}
 
-  /* ---- Achievements ---- */
-  .ach-list{list-style:none;margin:0;padding:0;max-height:50vh;overflow-y:auto;}
-  .ach-list li{
-    display:flex;align-items:center;gap:10px;
-    padding:10px 4px;border-bottom:1px solid var(--ash);
+  .station-buy{
+    min-width:100px;
+    text-align:center;
   }
-  .ach-list li:last-child{border-bottom:none;}
-  .ach-list li.locked{opacity:.4;}
-  .ach-icon{font-size:22px;width:30px;text-align:center;flex-shrink:0;}
-  .ach-info{display:flex;flex-direction:column;}
-  .ach-name{font-size:13px;font-weight:700;color:var(--text);}
-  .ach-desc{font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
 
-  /* ---- Sound toggle active state ---- */
-  .toolbar button.sound-off{color:var(--iron);text-decoration:line-through;}
-  .toolbar button#prestigeBtn.ready{
-    border-color:var(--ember);color:var(--ember-hot);
-    animation:readyPulse 1.6s ease-in-out infinite;
+  .station-buy .cost{
+    margin-bottom:5px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
   }
-  @keyframes readyPulse{
-    0%,100%{box-shadow:0 0 0 rgba(255,107,53,0);}
-    50%{box-shadow:0 0 10px rgba(255,107,53,.45);}
+
+  .upgrade{
+    padding:13px;
+  }
+
+  .upgrade-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+  }
+
+  .upgrade.locked{
+    opacity:.48;
+  }
+
+  .empty-note{
+    padding:15px;
+    border:1px dashed var(--ash);
+    border-radius:8px;
+    color:var(--text-dim);
+    font-size:11px;
+    text-align:center;
+  }
+
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:24px;
+    transform:translate(-50%,20px);
+    z-index:100;
+    padding:10px 15px;
+    border:1px solid var(--ash);
+    border-radius:8px;
+    background:#21170f;
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    opacity:0;
+    pointer-events:none;
+    transition:.2s;
+  }
+
+  .toast.show{
+    opacity:1;
+    transform:translate(-50%,0);
+  }
+
+  .announce-banner{
+    position:fixed;
+    top:14px;
+    left:50%;
+    transform:translate(-50%,-130%);
+    z-index:90;
+    width:min(700px,calc(100% - 30px));
+    padding:13px 16px;
+    border:1px solid var(--ember);
+    border-radius:10px;
+    background:linear-gradient(135deg,#32160d,#1d120c);
+    box-shadow:0 0 30px rgba(255,107,53,.25);
+    color:var(--ember-hot);
+    text-align:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    transition:.3s;
+  }
+
+  .announce-banner.show{
+    transform:translate(-50%,0);
+  }
+
+  .modal-backdrop{
+    position:fixed;
+    inset:0;
+    z-index:50;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:18px;
+    background:rgba(0,0,0,.72);
+    backdrop-filter:blur(4px);
+  }
+
+  .modal-backdrop.open{
+    display:flex;
+  }
+
+  .modal-wrap{
+    width:100%;
+    max-width:620px;
+    max-height:90vh;
+    overflow:auto;
+  }
+
+  .modal{
+    position:relative;
+    padding:20px;
+    border:1px solid var(--ash);
+    border-radius:12px;
+    background:var(--panel);
+    box-shadow:0 20px 60px rgba(0,0,0,.55);
+  }
+
+  .modal h2{
+    margin:0;
+    font-size:21px;
+  }
+
+  .modal-sub{
+    margin:6px 0 15px;
+    color:var(--ember-hot);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    letter-spacing:1px;
+  }
+
+  .modal-close{
+    position:absolute;
+    top:10px;
+    right:10px;
+    padding:5px 8px;
+  }
+
+  .modal p,
+  .modal li{
+    color:var(--steel);
+    font-size:12px;
+    line-height:1.55;
+  }
+
+  .modal input,
+  .modal textarea{
+    user-select:text;
+  }
+
+  .lb-form{
+    display:flex;
+    gap:8px;
+    margin-bottom:12px;
+  }
+
+  .lb-form input{
+    flex:1;
+    min-width:0;
+    border:1px solid var(--ash);
+    border-radius:7px;
+    padding:9px;
+    outline:none;
+    background:var(--panel-2);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+  }
+
+  .lb-list{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin:0;
+    padding:0;
+    list-style:none;
+  }
+
+  .lb-list li{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:9px 11px;
+    border:1px solid var(--ash);
+    border-radius:7px;
+    background:var(--panel-2);
+  }
+
+  .lb-rank{
+    min-width:28px;
+    color:var(--ember-hot);
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+  }
+
+  .lb-player{
+    flex:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+
+  .lb-score{
+    color:var(--ember-hot);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+  }
+
+  .lb-empty{
+    padding:15px;
+    color:var(--text-dim);
+    text-align:center;
+    font-size:11px;
+  }
+
+  .lb-note{
+    margin-top:10px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;
+    line-height:1.5;
+  }
+
+  .chat-box{
+    display:flex;
+    flex-direction:column;
+    height:min(520px,70vh);
+  }
+
+  .chat-messages{
+    flex:1;
+    min-height:0;
+    overflow-y:auto;
+    padding:5px;
+    border:1px solid var(--ash);
+    border-radius:8px;
+    background:#140f0c;
+  }
+
+  .chat-message{
+    padding:8px 9px;
+    border-bottom:1px solid rgba(58,47,36,.55);
+  }
+
+  .chat-message:last-child{
+    border-bottom:0;
+  }
+
+  .chat-name{
+    color:var(--ember-hot);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;
+    font-weight:700;
+  }
+
+  .chat-name.owner{
+    color:#ff7a45;
+    text-shadow:0 0 8px rgba(255,107,53,.45);
+  }
+
+  .chat-time{
+    margin-left:6px;
+    color:var(--text-dim);
+    font-size:8px;
+    font-weight:400;
+  }
+
+  .chat-text{
+    margin-top:3px;
+    color:var(--text);
+    font-size:12px;
+    line-height:1.4;
+    word-break:break-word;
+  }
+
+  .chat-input-row{
+    display:flex;
+    gap:7px;
+    margin-top:8px;
+  }
+
+  .chat-input-row input{
+    flex:1;
+    min-width:0;
+    border:1px solid var(--ash);
+    border-radius:7px;
+    padding:10px;
+    outline:none;
+    background:var(--panel-2);
+    color:var(--text);
+    font-family:'Bitter',serif;
+    font-size:12px;
+    user-select:text;
+  }
+
+  .chat-input-row button{
+    min-width:70px;
+  }
+
+  .chat-status{
+    margin-top:5px;
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:8px;
+  }
+
+  @media(max-width:600px){
+    header{
+      padding:14px;
+    }
+
+    h1{
+      font-size:19px;
+    }
+
+    .mark{
+      font-size:26px;
+    }
+
+    .gold-readout .amt{
+      font-size:20px;
+    }
+
+    main{
+      padding:18px 12px 70px;
+    }
+
+    #anvil{
+      width:150px;
+      height:125px;
+      font-size:75px;
+    }
+
+    .station{
+      grid-template-columns:1fr;
+    }
+
+    .station-buy{
+      text-align:left;
+    }
+
+    .station-buy button{
+      width:100%;
+    }
+
+    .toolbar button{
+      flex:1;
+      min-width:100px;
+    }
   }
 </style>
 </head>
+
 <body>
 
 <div class="noise"></div>
@@ -434,6 +658,7 @@
       <span class="sub">Idle Forge Tycoon</span>
     </div>
   </div>
+
   <div class="gold-readout">
     <div class="amt" id="goldAmt">0</div>
     <div class="rate" id="goldRate">+0/s</div>
@@ -445,16 +670,21 @@
 
   <div class="forge-wrap">
     <div class="forge-glow"></div>
+
     <div style="position:relative;">
       <div class="overheat-badge" id="overheatBadge">Cooling down… 3s</div>
       <div id="anvil">⚒️</div>
     </div>
-    <div class="click-power">Strike power: <b id="clickPowerLabel">1</b> gold / hit</div>
+
+    <div class="click-power">
+      Strike power: <b id="clickPowerLabel">1</b> gold / hit
+    </div>
   </div>
 
   <div class="toolbar">
     <button id="helpBtn">How to play</button>
     <button id="leaderboardBtn">🏆 Leaderboard</button>
+    <button id="chatBtn">🌐 Global Chat</button>
     <button id="achBtn">🎖️ <span id="achCount">0/0</span></button>
     <button id="prestigeBtn">♻️ Rebirth</button>
     <button id="soundBtn">🔊 Sound</button>
@@ -470,7 +700,10 @@
 
   <div class="section-title">Upgrades</div>
   <div id="upgrades"></div>
-  <div class="empty-note" id="noUpgrades" style="display:none;">Earn more gold to unlock upgrades.</div>
+
+  <div class="empty-note" id="noUpgrades" style="display:none;">
+    Earn more gold to unlock upgrades.
+  </div>
 
 </main>
 
@@ -482,8 +715,10 @@
   <div class="modal-wrap">
     <div class="modal">
       <button class="modal-close" id="introClose">✕</button>
+
       <h2>🔥 Ember Foundry</h2>
       <div class="modal-sub">HOW TO PLAY</div>
+
       <ul>
         <li>Tap the anvil to strike it and earn gold.</li>
         <li>Spend gold on stations — they keep earning gold per second even while you're away.</li>
@@ -491,13 +726,12 @@
         <li>Once you've earned enough, Rebirth for a permanent bonus that carries into your next run.</li>
         <li>The game autosaves in this browser, so closing the tab is safe.</li>
       </ul>
+
       <div class="note-box">
-        ⚠️ FIXED: a bug where spam-clicking the anvil very fast (many taps per second) could pile up
+        ⚠️ FIXED: a bug where spam-clicking the anvil very fast could pile up
         so many spark/ember effects at once that the page would slow down or freeze.
-        The anvil now has a short "overheat" cooldown — if you tap faster than ~8 times a second,
-        it locks for 3 seconds to let the forge cool before you can strike again.
+        The anvil now has a short overheat cooldown.
       </div>
-      <button class="primary" id="introStart">Start Forging</button>
     </div>
   </div>
 </div>
@@ -507,15 +741,69 @@
   <div class="modal-wrap">
     <div class="modal">
       <button class="modal-close" id="lbClose">✕</button>
+
       <h2>🏆 Leaderboard</h2>
-      <div class="modal-sub">TOP GOLD/SEC — THIS BROWSER</div>
+      <div class="modal-sub">TOP GOLD/SEC — PUBLIC</div>
+
       <div class="lb-form">
-        <input type="text" id="lbNameInput" maxlength="16" placeholder="Your name">
+        <input
+          type="text"
+          id="lbNameInput"
+          maxlength="16"
+          placeholder="Your name"
+        >
         <button id="lbSubmit">Submit</button>
       </div>
+
       <ul class="lb-list" id="lbList"></ul>
-      <div class="lb-empty" id="lbEmpty" style="display:none;">No scores yet — be the first to submit.</div>
-      <div class="lb-note">Scores are stored locally on this device/browser only — there's no shared server, so this board won't sync with your classmate's copy of the game.</div>
+
+      <div class="lb-empty" id="lbEmpty" style="display:none;">
+        No scores yet — be the first to submit.
+      </div>
+
+      <div class="lb-note">
+        Scores are shared with everyone who plays this game through the same server.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Global Chat modal -->
+<div class="modal-backdrop" id="chatModal">
+  <div class="modal-wrap">
+    <div class="modal">
+      <button class="modal-close" id="chatClose">✕</button>
+
+      <h2>🌐 Global Chat</h2>
+      <div class="modal-sub">LIVE • EVERY PLAYER CAN SEE THIS</div>
+
+      <div class="chat-box">
+        <div class="chat-messages" id="chatMessages">
+          <div class="lb-empty" id="chatEmpty">
+            No messages yet. Start the conversation!
+          </div>
+        </div>
+
+        <div class="chat-input-row">
+          <input
+            type="text"
+            id="chatName"
+            maxlength="20"
+            placeholder="Your name"
+          >
+          <input
+            type="text"
+            id="chatText"
+            maxlength="250"
+            placeholder="Type a message..."
+          >
+          <button class="primary" id="chatSend">Send</button>
+        </div>
+
+        <div class="chat-status" id="chatStatus">
+          Connecting to global chat...
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -525,9 +813,11 @@
   <div class="modal-wrap">
     <div class="modal">
       <button class="modal-close" id="achClose">✕</button>
+
       <h2>🎖️ Achievements</h2>
-      <div class="modal-sub" id="achModalSub">UNLOCKED: <span id="achCount2">0/0</span></div>
-      <ul class="ach-list" id="achList"></ul>
+      <div class="modal-sub">FORGE YOUR LEGACY</div>
+
+      <div id="achList"></div>
     </div>
   </div>
 </div>
@@ -537,16 +827,15 @@
   <div class="modal-wrap">
     <div class="modal">
       <button class="modal-close" id="prestigeClose">✕</button>
-      <h2>♻️ Rebirth the Foundry</h2>
-      <div class="modal-sub">PERMANENT PROGRESS</div>
-      <p>Rebirthing resets your gold, stations, and upgrades back to zero — but converts your
-      lifetime earnings into permanent <b>Ember Shards</b>. Each shard adds +10% to ALL future
-      output, forever, even after rebirthing again.</p>
-      <div class="note-box">
-        Shards owned: <b id="shardsOwned">0</b> (current bonus: <b id="prestigeMultLabel">x1.0</b>)<br>
-        Shards you'd gain right now: <b id="shardsGain">0</b>
-      </div>
-      <button class="primary" id="prestigeConfirmBtn">Not ready yet</button>
+
+      <h2>♻️ Rebirth</h2>
+      <div class="modal-sub">REFORGE YOUR DESTINY</div>
+
+      <div id="prestigeContent"></div>
+
+      <button class="primary" id="prestigeConfirmBtn" style="margin-top:15px;width:100%;">
+        Rebirth
+      </button>
     </div>
   </div>
 </div>
@@ -556,28 +845,59 @@
   <div class="modal-wrap">
     <div class="modal">
       <button class="modal-close" id="messageOwnerClose">✕</button>
+
       <h2>💬 Message the Owner</h2>
       <div class="modal-sub">ONLY THE OWNER SEES THIS</div>
-      <p>Send a note straight to the game's owner. Other players never see it — and neither do you again once it's sent.</p>
-      <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:6px;">Your name (optional)</label>
-      <input type="text" id="messageOwnerName" maxlength="20" placeholder="e.g. Alex" style="width:100%;box-sizing:border-box;background:var(--panel-2);border:1px solid var(--ash);border-radius:8px;color:var(--text);padding:9px 10px;font-family:'Bitter',serif;font-size:13px;margin-bottom:12px;">
-      <textarea id="messageOwnerText" maxlength="300" placeholder="Type your message..." style="width:100%;box-sizing:border-box;min-height:90px;background:var(--panel-2);border:1px solid var(--ash);border-radius:8px;color:var(--text);padding:9px 10px;font-family:'Bitter',serif;font-size:13px;resize:vertical;"></textarea>
-      <button class="primary" id="messageOwnerSend" style="margin-top:12px;">Send</button>
+
+      <p>
+        Send a note straight to the game's owner.
+        Other players never see it.
+      </p>
+
+      <label style="display:block;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:6px;">
+        Your name
+      </label>
+
+      <input
+        type="text"
+        id="messageOwnerName"
+        maxlength="20"
+        placeholder="Your name"
+        style="width:100%;box-sizing:border-box;background:var(--panel-2);border:1px solid var(--ash);border-radius:8px;color:var(--text);padding:9px 10px;font-family:'Bitter',serif;font-size:13px;margin-bottom:12px;"
+      >
+
+      <textarea
+        id="messageOwnerText"
+        maxlength="300"
+        placeholder="Type your message..."
+        style="width:100%;box-sizing:border-box;min-height:90px;background:var(--panel-2);border:1px solid var(--ash);border-radius:8px;color:var(--text);padding:9px 10px;font-family:'Bitter',serif;font-size:13px;resize:vertical;"
+      ></textarea>
+
+      <button class="primary" id="messageOwnerSend" style="margin-top:12px;">
+        Send
+      </button>
     </div>
   </div>
 </div>
 
 <script>
 (function(){
-  "use strict";
 
-  // ---- Public leaderboard backend ----
-  // Leave blank to use a local-only leaderboard (per-browser, not shared).
-  // After deploying /backend (see backend/README.md), paste your server's URL here,
-  // no trailing slash, e.g. "https://ember-foundry-leaderboard.onrender.com"
+  /* ---------------- Public server ---------------- */
+
   var API_BASE_URL = "https://tycoon-1-bt5n.onrender.com";
 
+  /*
+    The owner identity is permanent.
+    Admin events are displayed as:
+
+    👑 CARL • FOUNDRY OVERLORD
+  */
+  var OWNER_NAME = "Carl";
+  var OWNER_TITLE = "CARL • FOUNDRY OVERLORD";
+
   /* ---------------- State ---------------- */
+
   var state = {
     gold: 0,
     totalEarned: 0,
@@ -585,1139 +905,2759 @@
     clickMult: 1,
     lastTick: Date.now(),
     lastSave: Date.now(),
-    stations: {},      // id -> owned count
-    upgrades: {},       // id -> bool bought
-    prestigeShards: 0,  // permanent currency from Reforging
+
+    stations: {},
+    upgrades: {},
+
+    prestigeShards: 0,
     lifetimePrestiges: 0,
-    achievements: {},   // id -> bool unlocked
-    soundOn: true
+
+    achievements: {},
+
+    soundOn: true,
+
+    boostUntil: 0,
+    boostMult: 1
   };
 
+  /* ---------------- Helpers ---------------- */
+
+  function $(id){
+    return document.getElementById(id);
+  }
+
+  function formatNumber(n){
+    n = Number(n) || 0;
+
+    if(n < 1000){
+      return Math.floor(n).toLocaleString();
+    }
+
+    var units = ["K","M","B","T","Qa","Qi"];
+    var i = -1;
+
+    while(Math.abs(n) >= 1000 && i < units.length - 1){
+      n /= 1000;
+      i++;
+    }
+
+    return n.toFixed(n >= 100 ? 0 : n >= 10 ? 1 : 2) + units[i];
+  }
+
+  function escapeHtml(value){
+    var d = document.createElement("div");
+    d.textContent = String(value == null ? "" : value);
+    return d.innerHTML;
+  }
+
+  function showToast(message){
+    var el = $("toast");
+
+    if(!el) return;
+
+    el.textContent = message;
+    el.classList.add("show");
+
+    clearTimeout(showToast.timer);
+
+    showToast.timer = setTimeout(function(){
+      el.classList.remove("show");
+    },1800);
+  }
+
+  function openModal(el){
+    if(el) el.classList.add("open");
+  }
+
+  function closeModal(el){
+    if(el) el.classList.remove("open");
+  }
+
+  /* ---------------- Stations ---------------- */
+
   var STATIONS = [
-    { id:"apprentice", name:"Apprentice",      icon:"🧑‍🏭", baseCost:15,          baseRate:0.1,    desc:"Fetches coal, sweeps ash." },
-    { id:"bellows",    name:"Bellows Rig",     icon:"💨",   baseCost:100,         baseRate:1,      desc:"Keeps the fire fed." },
-    { id:"smelter",    name:"Smelter",         icon:"🧯",   baseCost:1100,        baseRate:8,      desc:"Melts raw ore to liquid." },
-    { id:"press",      name:"Ingot Press",     icon:"🔩",   baseCost:12000,       baseRate:47,     desc:"Stamps cooling metal into bars." },
-    { id:"forgemaster",name:"Forge Master",    icon:"🛠️",   baseCost:130000,      baseRate:260,    desc:"Oversees three shifts at once." },
-    { id:"foundry",    name:"Foundry Hall",    icon:"🏭",   baseCost:1400000,     baseRate:1400,   desc:"A whole building, only for casting." },
-    { id:"ironworks",  name:"Ironworks",       icon:"⚙️",   baseCost:20000000,    baseRate:7800,   desc:"Gears turning gears turning gold." },
-    { id:"blast",      name:"Blast Furnace",   icon:"🌋",   baseCost:330000000,   baseRate:44000,  desc:"Heat you can see from town." },
-    { id:"automaton",  name:"Automaton Line",  icon:"🤖",   baseCost:5100000000,  baseRate:260000, desc:"Clockwork smiths, no lunch breaks." },
-    { id:"dragon",     name:"Dragon's Hoard",  icon:"🐉",   baseCost:75000000000, baseRate:1600000,desc:"You made a deal. Don't ask." }
+    {
+      id:"apprentice",
+      name:"Apprentice",
+      desc:"A young smith producing a small amount of gold.",
+      baseCost:25,
+      rate:1
+    },
+    {
+      id:"bellows",
+      name:"Bellows",
+      desc:"Keeps the forge hot and improves production.",
+      baseCost:100,
+      rate:5
+    },
+    {
+      id:"smelter",
+      name:"Smelter",
+      desc:"Turns raw ore into valuable metal.",
+      baseCost:500,
+      rate:20
+    },
+    {
+      id:"press",
+      name:"Forge Press",
+      desc:"Heavy machinery for high-volume forging.",
+      baseCost:2500,
+      rate:80
+    },
+    {
+      id:"forgemaster",
+      name:"Forge Master",
+      desc:"An expert smith who dramatically increases output.",
+      baseCost:10000,
+      rate:300
+    },
+    {
+      id:"foundry",
+      name:"Foundry",
+      desc:"A massive industrial forge.",
+      baseCost:50000,
+      rate:1200
+    },
+    {
+      id:"ironworks",
+      name:"Ironworks",
+      desc:"Advanced metal production.",
+      baseCost:250000,
+      rate:5000
+    },
+    {
+      id:"blast",
+      name:"Blast Furnace",
+      desc:"Extreme heat means extreme profit.",
+      baseCost:1000000,
+      rate:20000
+    },
+    {
+      id:"automaton",
+      name:"Forge Automaton",
+      desc:"Mechanical smiths never stop working.",
+      baseCost:5000000,
+      rate:90000
+    },
+    {
+      id:"dragon",
+      name:"Dragon Forge",
+      desc:"Legendary fire from a legendary creature.",
+      baseCost:25000000,
+      rate:400000
+    }
   ];
+
+  /* ---------------- Upgrades ---------------- */
 
   var UPGRADES = [
-    { id:"hammer1", name:"Tempered Hammer",  icon:"🔨", cost:500,      desc:"Strike power x2.",
-      apply:function(){ state.clickMult*=2; } },
-    { id:"bellows2", name:"Reinforced Bellows", icon:"🌬️", cost:800, desc:"Bellows Rig output x2.",
-      req:"bellows", apply:function(){ mult.bellows*=2; } },
-    { id:"apprentice2", name:"Motivated Apprentices", icon:"📯", cost:2000, desc:"Apprentice output x2.",
-      req:"apprentice", apply:function(){ mult.apprentice*=2; } },
-    { id:"hammer2", name:"Reinforced Grip", icon:"🦾", cost:25000, desc:"Strike power x3.",
-      apply:function(){ state.clickMult*=3; } },
-    { id:"smelter2", name:"Double Crucible", icon:"🧪", cost:60000, desc:"Smelter output x2.",
-      req:"smelter", apply:function(){ mult.smelter*=2; } },
-    { id:"allrate1", name:"Coal Contract", icon:"⛏️", cost:250000, desc:"All station output x1.5.",
-      apply:function(){ globalMult*=1.5; } },
-    { id:"forgemaster2", name:"Master's Certification", icon:"📜", cost:520000, desc:"Forge Master output x2.",
-      req:"forgemaster", apply:function(){ mult.forgemaster*=2; } },
-    { id:"press2", name:"Precision Dies", icon:"📐", cost:900000, desc:"Ingot Press output x2.",
-      req:"press", apply:function(){ mult.press*=2; } },
-    { id:"ledger1", name:"Foreman's Ledger", icon:"📒", cost:3000000, desc:"All station output x1.5, once lifetime earnings pass 5M.",
-      apply:function(){ globalMult*=1.5; } },
-    { id:"hammer3", name:"Ember-Forged Hammer", icon:"⚡", cost:4000000, desc:"Strike power x5.",
-      apply:function(){ state.clickMult*=5; } },
-    { id:"foundry2", name:"Extra Casting Line", icon:"🏗️", cost:6500000, desc:"Foundry Hall output x2.",
-      req:"foundry", apply:function(){ mult.foundry*=2; } },
-    { id:"allrate2", name:"Rail Spur", icon:"🚂", cost:15000000, desc:"All station output x2.",
-      apply:function(){ globalMult*=2; } },
-    { id:"ironworks2", name:"Precision Gearing", icon:"⚙️", cost:85000000, desc:"Ironworks output x2.",
-      req:"ironworks", apply:function(){ mult.ironworks*=2; } },
-    { id:"clickscale", name:"Anvil of the Ancients", icon:"💎", cost:100000000, desc:"Strike power scales with gold/sec.",
-      apply:function(){ clickScalesWithRate=true; } },
-    { id:"hammer4", name:"Meteoric Alloy Head", icon:"☄️", cost:600000000, desc:"Strike power x10.",
-      apply:function(){ state.clickMult*=10; } },
-    { id:"blast2", name:"Superheated Core", icon:"🔴", cost:1300000000, desc:"Blast Furnace output x2.",
-      req:"blast", apply:function(){ mult.blast*=2; } },
-    { id:"allrate3", name:"Automated Logistics", icon:"📦", cost:2000000000, desc:"All station output x2.5.",
-      apply:function(){ globalMult*=2.5; } },
-    { id:"automaton2", name:"Self-Repair Protocol", icon:"🔧", cost:19000000000, desc:"Automaton Line output x2.",
-      req:"automaton", apply:function(){ mult.automaton*=2; } },
-    { id:"allrate4", name:"Continental Freight", icon:"🚚", cost:45000000000, desc:"All station output x3.",
-      apply:function(){ globalMult*=3; } },
-    { id:"dragon2", name:"Second Deal", icon:"🐲", cost:280000000000, desc:"Dragon's Hoard output x2.",
-      req:"dragon", apply:function(){ mult.dragon*=2; } },
-    { id:"hammer5", name:"Hand of the Foundry God", icon:"✨", cost:900000000000, desc:"Strike power x25.",
-      apply:function(){ state.clickMult*=25; } }
+    {
+      id:"hammer1",
+      name:"Tempered Hammer",
+      desc:"Increase click power.",
+      cost:100,
+      effect:"click",
+      mult:2
+    },
+    {
+      id:"bellows2",
+      name:"Power Bellows",
+      desc:"Increase all station production.",
+      cost:500,
+      effect:"all",
+      mult:1.5
+    },
+    {
+      id:"apprentice2",
+      name:"Apprentice Training",
+      desc:"Apprentices work twice as fast.",
+      cost:1000,
+      effect:"station",
+      station:"apprentice",
+      mult:2
+    },
+    {
+      id:"hammer2",
+      name:"Steel Hammer",
+      desc:"Greatly increase click power.",
+      cost:5000,
+      effect:"click",
+      mult:3
+    },
+    {
+      id:"smelter2",
+      name:"Improved Smelting",
+      desc:"Double Smelter output.",
+      cost:10000,
+      effect:"station",
+      station:"smelter",
+      mult:2
+    },
+    {
+      id:"allrate1",
+      name:"Foundry Accounting",
+      desc:"Increase every station.",
+      cost:25000,
+      effect:"all",
+      mult:1.5
+    },
+    {
+      id:"forgemaster2",
+      name:"Master Techniques",
+      desc:"Forge Masters produce twice as much.",
+      cost:50000,
+      effect:"station",
+      station:"forgemaster",
+      mult:2
+    },
+    {
+      id:"press2",
+      name:"Hydraulic Upgrade",
+      desc:"Double Forge Press output.",
+      cost:100000,
+      effect:"station",
+      station:"press",
+      mult:2
+    },
+    {
+      id:"ledger1",
+      name:"Golden Ledger",
+      desc:"Increase every station.",
+      cost:250000,
+      effect:"all",
+      mult:1.75
+    },
+    {
+      id:"hammer3",
+      name:"Molten Hammer",
+      desc:"Huge increase to click power.",
+      cost:500000,
+      effect:"click",
+      mult:4
+    },
+    {
+      id:"foundry2",
+      name:"Foundry Expansion",
+      desc:"Double Foundry output.",
+      cost:750000,
+      effect:"station",
+      station:"foundry",
+      mult:2
+    },
+    {
+      id:"allrate2",
+      name:"Industrial Network",
+      desc:"Increase every station.",
+      cost:1500000,
+      effect:"all",
+      mult:2
+    },
+    {
+      id:"ironworks2",
+      name:"Ironworks Expansion",
+      desc:"Double Ironworks output.",
+      cost:3000000,
+      effect:"station",
+      station:"ironworks",
+      mult:2
+    },
+    {
+      id:"clickscale",
+      name:"Forge Rhythm",
+      desc:"Massively improve click power.",
+      cost:5000000,
+      effect:"click",
+      mult:5
+    },
+    {
+      id:"hammer4",
+      name:"Inferno Hammer",
+      desc:"Extreme click power.",
+      cost:10000000,
+      effect:"click",
+      mult:5
+    },
+    {
+      id:"blast2",
+      name:"Super Furnace",
+      desc:"Double Blast Furnace output.",
+      cost:15000000,
+      effect:"station",
+      station:"blast",
+      mult:2
+    },
+    {
+      id:"allrate3",
+      name:"Forge Dominion",
+      desc:"Increase every station.",
+      cost:30000000,
+      effect:"all",
+      mult:2
+    },
+    {
+      id:"automaton2",
+      name:"Automaton Army",
+      desc:"Double Forge Automaton output.",
+      cost:75000000,
+      effect:"station",
+      station:"automaton",
+      mult:2
+    },
+    {
+      id:"allrate4",
+      name:"Ancient Engineering",
+      desc:"Increase every station.",
+      cost:150000000,
+      effect:"all",
+      mult:2.5
+    },
+    {
+      id:"dragon2",
+      name:"Dragon's Heart",
+      desc:"Double Dragon Forge output.",
+      cost:500000000,
+      effect:"station",
+      station:"dragon",
+      mult:2
+    },
+    {
+      id:"hammer5",
+      name:"Godforge Hammer",
+      desc:"The ultimate forging tool.",
+      cost:1000000000,
+      effect:"click",
+      mult:10
+    }
   ];
+
+  /* ---------------- Boosts ---------------- */
 
   var BOOSTS = [
-    { id:"spark",   name:"Spark Boost",    icon:"✨", cost:200,    mult:2,  durationMs:30000, cooldownMs:60000,  desc:"x2 output, 30s" },
-    { id:"surge",   name:"Ember Surge",    icon:"🔥", cost:2000,   mult:3,  durationMs:25000, cooldownMs:90000,  desc:"x3 output, 25s" },
-    { id:"inferno", name:"Inferno Rush",   icon:"🌋", cost:20000,  mult:5,  durationMs:20000, cooldownMs:150000, desc:"x5 output, 20s" },
-    { id:"dragon",  name:"Dragon's Breath",icon:"🐉", cost:250000, mult:10, durationMs:15000, cooldownMs:240000, desc:"x10 output, 15s" }
+    {
+      id:"small",
+      name:"Ember Rush",
+      desc:"2x production for 30 seconds.",
+      cost:1000,
+      mult:2,
+      duration:30000
+    },
+    {
+      id:"medium",
+      name:"Inferno",
+      desc:"5x production for 30 seconds.",
+      cost:10000,
+      mult:5,
+      duration:30000
+    },
+    {
+      id:"large",
+      name:"Forge Frenzy",
+      desc:"10x production for 60 seconds.",
+      cost:100000,
+      mult:10,
+      duration:60000
+    }
   ];
-  var boostCooldownUntil = {}; // id -> timestamp
-  var activeBoosts = [];       // { id, mult, endsAt }
-  BOOSTS.forEach(function(b){ boostCooldownUntil[b.id]=0; });
-
-  function activeBoostMultiplier(){
-    var now = Date.now();
-    activeBoosts = activeBoosts.filter(function(b){ return b.endsAt > now; });
-    var m = 1;
-    activeBoosts.forEach(function(b){ m *= b.mult; });
-    return m;
-  }
-
-
-  var mult = {};       // per-station multiplier from upgrades
-  var globalMult = 1;  // multiplier applied to all stations
-  var clickScalesWithRate = false;
-  STATIONS.forEach(function(s){ mult[s.id]=1; state.stations[s.id]=0; });
-
-  /* ---------------- Prestige ("Rebirth the Foundry") ---------------- */
-  // Permanent shards earned from total lifetime earnings, kept across resets.
-  var PRESTIGE_MIN_EARNED = 1000000; // 1M lifetime earned before rebirthing unlocks
-  function prestigeMultiplier(){
-    return 1 + state.prestigeShards * 0.0001;
-  }
-  function shardsAvailable(){
-    if(state.totalEarned < PRESTIGE_MIN_EARNED) return 0;
-    return Math.floor(Math.sqrt(state.totalEarned / PRESTIGE_MIN_EARNED));
-  }
-  function doPrestige(){
-    var gained = shardsAvailable();
-    if(gained <= 0) return;
-    state.prestigeShards += gained;
-    state.lifetimePrestiges++;
-    // reset the run, but keep prestige shards, achievements, and sound pref
-    state.gold = 0;
-    state.totalEarned = 0;
-    state.clickBase = 1;
-    state.clickMult = 1;
-    state.stations = {};
-    state.upgrades = {};
-    globalMult = 1;
-    clickScalesWithRate = false;
-    mult = {};
-    STATIONS.forEach(function(s){ mult[s.id]=1; state.stations[s.id]=0; });
-    activeBoosts = [];
-    boostCooldownUntil = {};
-    BOOSTS.forEach(function(b){ boostCooldownUntil[b.id]=0; });
-    showToast("Reborn! +"+gained+" Ember Shard"+(gained===1?"":"s")+" — output now x"+prestigeMultiplier().toFixed(1));
-    renderAll();
-  }
-
-  /* ---------------- Achievements ---------------- */
-  var ACHIEVEMENTS = [
-    { id:"first_strike", icon:"👊", name:"First Strike", desc:"Hit the anvil once.",
-      check:function(){ return state.totalEarned > 0; } },
-    { id:"gold_1k", icon:"🥉", name:"Getting Started", desc:"Earn 1,000 lifetime gold.",
-      check:function(){ return state.totalEarned >= 1000; } },
-    { id:"gold_1m", icon:"🥈", name:"Foundry Owner", desc:"Earn 1,000,000 lifetime gold.",
-      check:function(){ return state.totalEarned >= 1000000; } },
-    { id:"gold_1b", icon:"🥇", name:"Gold Baron", desc:"Earn 1,000,000,000 lifetime gold.",
-      check:function(){ return state.totalEarned >= 1000000000; } },
-    { id:"apprentice_10", icon:"🧑‍🏭", name:"Full Crew", desc:"Own 10 Apprentices.",
-      check:function(){ return state.stations.apprentice >= 10; } },
-    { id:"all_stations", icon:"🏗️", name:"Full Operation", desc:"Own at least one of every station.",
-      check:function(){ return STATIONS.every(function(s){ return state.stations[s.id] > 0; }); } },
-    { id:"dragon_owned", icon:"🐉", name:"Deal With a Dragon", desc:"Own a Dragon's Hoard.",
-      check:function(){ return state.stations.dragon >= 1; } },
-    { id:"upgrades_5", icon:"🔧", name:"Tinkerer", desc:"Buy 5 upgrades.",
-      check:function(){ return Object.keys(state.upgrades).length >= 5; } },
-    { id:"upgrades_all", icon:"⭐", name:"Master Smith", desc:"Buy every upgrade.",
-      check:function(){ return Object.keys(state.upgrades).length >= UPGRADES.length; } },
-    { id:"boost_used", icon:"🔥", name:"Feel the Heat", desc:"Activate a boost.",
-      check:function(){ return activeBoosts.length > 0 || Object.values(boostCooldownUntil).some(function(t){ return t>0; }); } },
-    { id:"first_prestige", icon:"♻️", name:"Reborn", desc:"Rebirth for the first time.",
-      check:function(){ return state.lifetimePrestiges >= 1; } },
-    { id:"overheat", icon:"🥵", name:"Overheated", desc:"Trigger the anvil's overheat cooldown.",
-      check:function(){ return hasOverheated; } }
-  ];
-  var hasOverheated = false;
-
-  function checkAchievements(){
-    var newlyUnlocked = [];
-    ACHIEVEMENTS.forEach(function(a){
-      if(!state.achievements[a.id] && a.check()){
-        state.achievements[a.id] = true;
-        newlyUnlocked.push(a);
-      }
-    });
-    newlyUnlocked.forEach(function(a){
-      showToast("🏆 Achievement — "+a.name);
-      playAchievementSound();
-    });
-  }
-
-  function renderAchievements(){
-    var list = document.getElementById("achList");
-    if(!list) return;
-    list.innerHTML = ACHIEVEMENTS.map(function(a){
-      var unlocked = !!state.achievements[a.id];
-      return '<li class="'+(unlocked?'':'locked')+'">'
-        + '<span class="ach-icon">'+(unlocked?a.icon:'🔒')+'</span>'
-        + '<span class="ach-info"><span class="ach-name">'+a.name+'</span>'
-        + '<span class="ach-desc">'+a.desc+'</span></span>'
-      + '</li>';
-    }).join("");
-    var count = Object.keys(state.achievements).length;
-    var counter = document.getElementById("achCount");
-    var counter2 = document.getElementById("achCount2");
-    if(counter) counter.textContent = count+"/"+ACHIEVEMENTS.length;
-    if(counter2) counter2.textContent = count+"/"+ACHIEVEMENTS.length;
-  }
-
-
-  function fmt(n){
-    if(n < 1000) return n.toFixed(n<10 && n%1!==0 ? 1 : 0);
-    var units = ["","K","M","B","T","Qa","Qi","Sx","Sp","Oc"];
-    var mag = Math.floor(Math.log10(n)/3);
-    mag = Math.min(mag, units.length-1);
-    var scaled = n / Math.pow(1000, mag);
-    return scaled.toFixed(scaled<10?2:scaled<100?1:0) + units[mag];
-  }
-
-  function stationCost(s){
-    var owned = state.stations[s.id];
-    return Math.ceil(s.baseCost * Math.pow(1.15, owned));
-  }
-  function stationRate(s){
-    return s.baseRate * state.stations[s.id] * mult[s.id] * globalMult;
-  }
-  function totalRate(){
-    var t=0;
-    STATIONS.forEach(function(s){ t+=stationRate(s); });
-    return t * activeBoostMultiplier() * prestigeMultiplier();
-  }
-  function clickPower(){
-    var base = state.clickBase * state.clickMult;
-    if(clickScalesWithRate) base += totalRate()*0.1;
-    return base * activeBoostMultiplier() * prestigeMultiplier();
-  }
-
-  /* ---------------- Rendering ---------------- */
-  var goldAmt = document.getElementById("goldAmt");
-  var goldRate = document.getElementById("goldRate");
-  var clickPowerLabel = document.getElementById("clickPowerLabel");
-  var stationsEl = document.getElementById("stations");
-  var upgradesEl = document.getElementById("upgrades");
-  var noUpgrades = document.getElementById("noUpgrades");
-
-  function firstLockedIndex(){
-    for(var i=0;i<STATIONS.length;i++){
-      if(state.stations[STATIONS[i].id]===0) return i;
-    }
-    return STATIONS.length;
-  }
-
-  function renderStations(){
-    var visibleCount = Math.min(STATIONS.length, firstLockedIndex()+2);
-    var html = "";
-    for(var i=0;i<visibleCount;i++){
-      var s = STATIONS[i];
-      var owned = state.stations[s.id];
-      var cost = stationCost(s);
-      var canAfford = state.gold >= cost;
-      var rate = s.baseRate * mult[s.id] * globalMult;
-      html += '<div class="station '+(canAfford?'affordable':'')+'" data-id="'+s.id+'">'
-        + '<div class="icon">'+s.icon+'</div>'
-        + '<div class="info">'
-          + '<div class="name">'+s.name+(owned>0?'<span class="owned">'+owned+'</span>':'')+'</div>'
-          + '<div class="desc">'+s.desc+'</div>'
-        + '</div>'
-        + '<div class="buy">'
-          + '<div class="cost '+(canAfford?'':'cant-afford')+'">'+fmt(cost)+'g</div>'
-          + '<div class="rate">'+fmt(rate)+'/s each</div>'
-        + '</div>'
-      + '</div>';
-    }
-    stationsEl.innerHTML = html;
-    Array.prototype.forEach.call(stationsEl.querySelectorAll(".station"), function(el){
-      el.addEventListener("click", function(){ buyStation(el.getAttribute("data-id")); });
-    });
-  }
-
-  function renderUpgrades(){
-    var avail = UPGRADES.filter(function(u){
-      if(state.upgrades[u.id]) return false;
-      if(u.req && state.stations[u.req]===0) return false;
-      return state.gold >= u.cost * 0.4 || state.totalEarned >= u.cost*0.4;
-    });
-    if(avail.length===0){
-      upgradesEl.innerHTML="";
-      noUpgrades.style.display="block";
-      return;
-    }
-    noUpgrades.style.display="none";
-    var html="";
-    avail.slice(0,5).forEach(function(u){
-      var canAfford = state.gold >= u.cost;
-      html += '<div class="upgrade '+(canAfford?'affordable':'')+'" data-id="'+u.id+'">'
-        + '<div class="icon">'+u.icon+'</div>'
-        + '<div class="info"><div class="name">'+u.name+'</div><div class="desc">'+u.desc+'</div></div>'
-        + '<div class="cost">'+fmt(u.cost)+'g</div>'
-      + '</div>';
-    });
-    upgradesEl.innerHTML = html;
-    Array.prototype.forEach.call(upgradesEl.querySelectorAll(".upgrade"), function(el){
-      el.addEventListener("click", function(){ buyUpgrade(el.getAttribute("data-id")); });
-    });
-  }
-
-  function renderBoosts(){
-    var now = Date.now();
-    var anyActive = activeBoosts.some(function(ab){ return ab.endsAt > now; });
-    var html = "";
-    BOOSTS.forEach(function(b){
-      var onCooldown = boostCooldownUntil[b.id] > now;
-      var canAfford = state.gold >= b.cost;
-      var blocked = onCooldown || anyActive;
-      var cls = blocked ? "cooldown" : (canAfford ? "affordable" : "");
-      var bottom;
-      if(anyActive && !onCooldown){
-        bottom = '<div class="bc-cd">A boost is already active</div>';
-      } else if(onCooldown){
-        bottom = '<div class="bc-cd">Ready in ' + Math.ceil((boostCooldownUntil[b.id]-now)/1000) + 's</div>';
-      } else {
-        bottom = '<div class="bc-cost '+(canAfford?'':'cant-afford')+'">'+fmt(b.cost)+'g</div>';
-      }
-      html += '<div class="boost-card '+cls+'" data-id="'+b.id+'">'
-        + '<div class="bc-top"><span class="bc-icon">'+b.icon+'</span><span class="bc-mult">x'+b.mult+'</span></div>'
-        + '<div class="bc-name">'+b.name+'</div>'
-        + '<div class="bc-desc">'+b.desc+'</div>'
-        + bottom
-      + '</div>';
-    });
-    var boostsEl = document.getElementById("boosts");
-    boostsEl.innerHTML = html;
-    Array.prototype.forEach.call(boostsEl.querySelectorAll(".boost-card"), function(el){
-      el.addEventListener("click", function(){ buyBoost(el.getAttribute("data-id")); });
-    });
-  }
-
-  function buyBoost(id){
-    var b = BOOSTS.filter(function(x){ return x.id===id; })[0];
-    if(!b) return;
-    var now = Date.now();
-
-    // Only one boost may be active at a time — clear out any expired ones,
-    // then block the purchase if something is still running.
-    activeBoosts = activeBoosts.filter(function(ab){ return ab.endsAt > now; });
-    if(activeBoosts.length > 0){
-      showToast("Only one boost can be active at a time — wait for it to end.");
-      return;
-    }
-
-    if(boostCooldownUntil[id] > now) return;
-    if(state.gold < b.cost) return;
-    state.gold -= b.cost;
-    activeBoosts.push({ id:b.id, mult:b.mult, endsAt: now + b.durationMs });
-    boostCooldownUntil[id] = now + b.cooldownMs;
-    playBoostSound();
-    showToast(b.name+" activated — x"+b.mult+" for "+(b.durationMs/1000)+"s");
-    renderAll();
-  }
-
-  function renderBoostStatus(){
-    var badge = document.getElementById("boostStatus");
-    var m = activeBoostMultiplier();
-    if(m <= 1 || activeBoosts.length===0){
-      badge.classList.remove("show");
-      return;
-    }
-    var soonestEnd = Math.min.apply(null, activeBoosts.map(function(b){ return b.endsAt; }));
-    var remaining = Math.max(0, Math.ceil((soonestEnd - Date.now())/1000));
-    badge.textContent = "🔥 x"+m+" active — "+remaining+"s";
-    badge.classList.add("show");
-  }
-
-  function renderHeader(){
-    goldAmt.textContent = fmt(state.gold)+"g";
-    goldRate.textContent = "+"+fmt(totalRate())+"/s";
-    clickPowerLabel.textContent = fmt(clickPower());
-  }
-
-  function renderPrestigePanel(){
-    var shardsNowEl = document.getElementById("shardsOwned");
-    var shardsGainEl = document.getElementById("shardsGain");
-    var prestigeBtn = document.getElementById("prestigeConfirmBtn");
-    var multEl = document.getElementById("prestigeMultLabel");
-    var toolbarBtn = document.getElementById("prestigeBtn");
-    if(!shardsNowEl) return;
-    var gain = shardsAvailable();
-    shardsNowEl.textContent = state.prestigeShards;
-    multEl.textContent = "x"+prestigeMultiplier().toFixed(1);
-    if(toolbarBtn) toolbarBtn.classList.toggle("ready", gain > 0);
-    if(gain > 0){
-      shardsGainEl.textContent = "+"+gain;
-      prestigeBtn.disabled = false;
-      prestigeBtn.textContent = "Rebirth for +"+gain+" Shard"+(gain===1?"":"s");
-    } else {
-      var need = fmt(PRESTIGE_MIN_EARNED);
-      shardsGainEl.textContent = "0 (earn "+need+"g lifetime to unlock)";
-      prestigeBtn.disabled = true;
-      prestigeBtn.textContent = "Not ready yet";
-    }
-  }
-
-  function renderAll(){
-    renderHeader();
-    renderBoosts();
-    renderBoostStatus();
-    renderStations();
-    renderUpgrades();
-    checkAchievements();
-    renderAchievements();
-    renderPrestigePanel();
-  }
-
-  /* ---------------- Sound (lightweight synth beeps, no audio files) ---------------- */
-  var audioCtx = null;
-  function getAudioCtx(){
-    if(!audioCtx){
-      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
-      catch(e){ return null; }
-    }
-    return audioCtx;
-  }
-  function beep(freq, durationMs, type){
-    if(!state.soundOn) return;
-    var ctx = getAudioCtx();
-    if(!ctx) return;
-    if(ctx.state === "suspended") ctx.resume();
-    var osc = ctx.createOscillator();
-    var gain = ctx.createGain();
-    osc.type = type || "triangle";
-    osc.frequency.value = freq;
-    gain.gain.value = 0.06;
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + durationMs/1000);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + durationMs/1000);
-  }
-  function playClickSound(){ beep(220 + Math.random()*40, 90, "triangle"); }
-  function playBuySound(){ beep(440, 140, "square"); }
-  function playBoostSound(){ beep(660, 220, "sawtooth"); }
-  function playAchievementSound(){ beep(523, 120, "sine"); setTimeout(function(){ beep(784, 180, "sine"); }, 110); }
-
-  /* ---------------- Actions ---------------- */
-  function buyStation(id){
-    var s = STATIONS.filter(function(x){return x.id===id;})[0];
-    if(!s) return;
-    var cost = stationCost(s);
-    if(state.gold < cost) return;
-    state.gold -= cost;
-    state.stations[id]++;
-    playBuySound();
-    renderAll();
-  }
-
-  function buyUpgrade(id){
-    var u = UPGRADES.filter(function(x){return x.id===id;})[0];
-    if(!u || state.upgrades[id]) return;
-    if(state.gold < u.cost) return;
-    state.gold -= u.cost;
-    state.upgrades[id] = true;
-    u.apply();
-    playBuySound();
-    showToast(u.name+" acquired");
-    renderAll();
-  }
-
-  var anvil = document.getElementById("anvil");
-  var overheatBadge = document.getElementById("overheatBadge");
-
-  // --- Anti-spam / overheat protection ---
-  // Fixes the freeze/glitch bug: hammering the anvil faster than the browser
-  // can clean up spark+ember elements let hundreds of DOM nodes pile up at once.
-  // We now (1) cap how many effect nodes can exist simultaneously, and
-  // (2) force a short cooldown if the click rate gets too high.
-  var clickTimestamps = [];
-  var CLICK_WINDOW_MS = 1000;
-  var CLICK_LIMIT = 8;          // max clicks allowed per window before overheating
-  var OVERHEAT_MS = 3000;
-  var isOverheated = false;
-  var overheatEndsAt = 0;
-  var MAX_LIVE_PARTICLES = 40;
-  var liveParticles = 0;
-
-  function startOverheat(){
-    isOverheated = true;
-    hasOverheated = true;
-    overheatEndsAt = Date.now() + OVERHEAT_MS;
-    anvil.classList.add("overheated");
-    overheatBadge.classList.add("show");
-    tickOverheatLabel();
-  }
-  function tickOverheatLabel(){
-    var remaining = Math.max(0, overheatEndsAt - Date.now());
-    if(remaining <= 0){
-      isOverheated = false;
-      anvil.classList.remove("overheated");
-      overheatBadge.classList.remove("show");
-      return;
-    }
-    overheatBadge.textContent = "Cooling down… " + (remaining/1000).toFixed(1) + "s";
-    requestAnimationFrame(tickOverheatLabel);
-  }
-
-  function performStrike(){
-    var gain = clickPower();
-    state.gold += gain;
-    state.totalEarned += gain;
-    anvil.classList.remove("hit"); void anvil.offsetWidth; anvil.classList.add("hit");
-    spawnSpark(gain);
-    spawnEmbers();
-    playClickSound();
-    renderHeader();
-    renderStations();
-    renderUpgrades();
-    checkAchievements();
-  }
-
-  anvil.addEventListener("click", function(e){
-    var immune = !!(window.__isOverheatImmune && window.__isOverheatImmune());
-    if(isOverheated && !immune) return;
-
-    var now = Date.now();
-    clickTimestamps.push(now);
-    clickTimestamps = clickTimestamps.filter(function(t){ return now - t < CLICK_WINDOW_MS; });
-    if(clickTimestamps.length > CLICK_LIMIT && !immune){
-      startOverheat();
-      return;
-    }
-
-    performStrike();
-  });
-
-  function spawnSpark(amount){
-    if(liveParticles >= MAX_LIVE_PARTICLES) return;
-    liveParticles++;
-    var rect = anvil.getBoundingClientRect();
-    var el = document.createElement("div");
-    el.className="spark";
-    el.textContent="+"+fmt(amount);
-    el.style.left = (rect.left + rect.width/2 + (Math.random()*40-20)) + "px";
-    el.style.top = (rect.top + rect.height*0.3) + "px";
-    document.body.appendChild(el);
-    setTimeout(function(){ el.remove(); liveParticles--; }, 750);
-  }
-  function spawnEmbers(){
-    var rect = anvil.getBoundingClientRect();
-    var cx = rect.left+rect.width/2, cy = rect.top+rect.height/2;
-    for(var i=0;i<6;i++){
-      if(liveParticles >= MAX_LIVE_PARTICLES) break;
-      liveParticles++;
-      var el = document.createElement("div");
-      el.className="ember-particle";
-      var angle = Math.random()*Math.PI*2, dist = 40+Math.random()*50;
-      el.style.setProperty("--fly-to", "translate("+(Math.cos(angle)*dist)+"px,"+(Math.sin(angle)*dist-30)+"px)");
-      el.style.left = cx+"px"; el.style.top = cy+"px";
-      document.body.appendChild(el);
-      (function(node){ setTimeout(function(){ node.remove(); liveParticles--; }, 620); })(el);
-    }
-  }
-
-  var toastEl = document.getElementById("toast");
-  var toastTimer=null;
-  function showToast(msg){
-    toastEl.textContent = msg;
-    toastEl.classList.add("show");
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ toastEl.classList.remove("show"); }, 1800);
-  }
 
   /* ---------------- Save / Load ---------------- */
+
   var SAVE_KEY = "emberFoundrySave_v1";
+
+  /*
+    Server reset version.
+
+    The server can increase this number whenever Carl presses
+    "RESET ALL PLAYER PROGRESS".
+
+    Every player's browser checks the version and clears
+    their local save if it has become outdated.
+  */
+  var RESET_VERSION_KEY = "emberFoundryResetVersion_v1";
+
+  function clearLocalProgress(){
+    try{
+      localStorage.removeItem(SAVE_KEY);
+    }catch(e){}
+
+    state = {
+      gold:0,
+      totalEarned:0,
+      clickBase:1,
+      clickMult:1,
+      lastTick:Date.now(),
+      lastSave:Date.now(),
+      stations:{},
+      upgrades:{},
+      prestigeShards:0,
+      lifetimePrestiges:0,
+      achievements:{},
+      soundOn:true,
+      boostUntil:0,
+      boostMult:1
+    };
+
+    STATIONS.forEach(function(s){
+      state.stations[s.id] = 0;
+    });
+
+    UPGRADES.forEach(function(u){
+      state.upgrades[u.id] = false;
+    });
+
+    renderAll();
+  }
+
+  function checkServerReset(){
+    if(!API_BASE_URL) return;
+
+    fetch(API_BASE_URL + "/api/reset-version", {
+      cache:"no-store"
+    })
+    .then(function(r){
+      if(!r.ok) throw new Error("reset check failed");
+      return r.json();
+    })
+    .then(function(data){
+
+      var serverVersion = Number(data.version || 0);
+
+      var localVersion = 0;
+
+      try{
+        localVersion = Number(
+          localStorage.getItem(RESET_VERSION_KEY) || 0
+        );
+      }catch(e){}
+
+      if(serverVersion > localVersion){
+
+        clearLocalProgress();
+
+        try{
+          localStorage.setItem(
+            RESET_VERSION_KEY,
+            String(serverVersion)
+          );
+        }catch(e){}
+
+        showToast("🔥 Carl reset all player progress");
+      }
+    })
+    .catch(function(){
+      /*
+        Do not destroy a player's save if the server is temporarily
+        unavailable.
+      */
+    });
+  }
 
   function save(silent){
     state.lastSave = Date.now();
+
     try{
-      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
-      if(!silent) showToast("Progress saved");
-    }catch(e){ if(!silent) showToast("Couldn't save (storage unavailable)"); }
+      localStorage.setItem(
+        SAVE_KEY,
+        JSON.stringify(state)
+      );
+
+      if(!silent){
+        showToast("Progress saved");
+      }
+    }catch(e){
+      if(!silent){
+        showToast("Couldn't save");
+      }
+    }
   }
 
   function load(){
     var raw;
-    try{ raw = localStorage.getItem(SAVE_KEY); }catch(e){ raw=null; }
-    if(!raw) return;
+
     try{
-      var loaded = JSON.parse(raw);
-      Object.keys(loaded).forEach(function(k){ state[k]=loaded[k]; });
-      STATIONS.forEach(function(s){ if(!(s.id in state.stations)) state.stations[s.id]=0; });
+      raw = localStorage.getItem(SAVE_KEY);
+    }catch(e){
+      raw = null;
+    }
 
-      // Reset everything upgrades can affect back to its base value BEFORE
-      // reapplying them. state.clickMult (and clickScalesWithRate) are saved
-      // as part of `state`, so without this reset, every reload re-multiplies
-      // them on top of the already-multiplied saved value — doubling (and
-      // eventually stacking further) the strike power each time the page
-      // is reopened. Resetting first makes every reload recompute the
-      // multipliers fresh from the owned upgrades instead of compounding.
-      state.clickMult = 1;
-      clickScalesWithRate = false;
-      globalMult = 1;
-      STATIONS.forEach(function(s){ mult[s.id] = 1; });
-
-      // reapply upgrade effects from a clean baseline
-      UPGRADES.forEach(function(u){
-        if(state.upgrades[u.id]) u.apply();
+    if(!raw){
+      STATIONS.forEach(function(s){
+        state.stations[s.id] = 0;
       });
 
-      // offline progress
-      var elapsedSec = Math.max(0,(Date.now()-state.lastSave)/1000);
-      elapsedSec = Math.min(elapsedSec, 8*3600); // cap at 8h
-      if(elapsedSec > 5){
-        var rate = totalRate();
-        var earned = rate*elapsedSec;
-        if(earned>0){
-          state.gold += earned;
-          state.totalEarned += earned;
-          showToast("Welcome back — the forge earned "+fmt(earned)+"g while away");
+      return;
+    }
+
+    try{
+      var loaded = JSON.parse(raw);
+
+      Object.keys(loaded).forEach(function(k){
+        state[k] = loaded[k];
+      });
+
+      STATIONS.forEach(function(s){
+        if(!(s.id in state.stations)){
+          state.stations[s.id] = 0;
         }
-      }
-      // Reset the tick clock to right now — otherwise the next tick() call
-      // re-measures this same elapsed gap and adds the offline earnings twice.
-      state.lastTick = Date.now();
-    }catch(e){}
+      });
+
+      UPGRADES.forEach(function(u){
+        if(!(u.id in state.upgrades)){
+          state.upgrades[u.id] = false;
+        }
+      });
+
+    }catch(e){
+      console.warn("Save could not be loaded");
+    }
   }
 
-  document.getElementById("saveBtn").addEventListener("click", function(){ save(false); });
+  /* ---------------- Production ---------------- */
 
-  /* ---------------- Game loop ---------------- */
-  var MAX_TICK_DT_SEC = 5; // if more than this passed (e.g. tab was backgrounded/suspended),
-                            // treat the excess as offline time instead of a live tick.
+  function getStationMultiplier(stationId){
+
+    var mult = 1;
+
+    UPGRADES.forEach(function(u){
+
+      if(!state.upgrades[u.id]) return;
+
+      if(u.effect === "all"){
+        mult *= u.mult;
+      }
+
+      if(
+        u.effect === "station" &&
+        u.station === stationId
+      ){
+        mult *= u.mult;
+      }
+    });
+
+    return mult;
+  }
+
+  function totalRate(){
+
+    var total = 0;
+
+    STATIONS.forEach(function(s){
+
+      var owned = Number(state.stations[s.id] || 0);
+
+      if(!owned) return;
+
+      total +=
+        owned *
+        s.rate *
+        getStationMultiplier(s.id);
+    });
+
+    if(Date.now() < state.boostUntil){
+      total *= state.boostMult || 1;
+    }
+
+    return total;
+  }
+
+  function clickPower(){
+
+    var value =
+      Number(state.clickBase || 1) *
+      Number(state.clickMult || 1);
+
+    return value;
+  }
+
+  function strike(){
+
+    if(
+      window.__isOverheatImmune &&
+      !window.__isOverheatImmune()
+    ){
+      var now = Date.now();
+
+      if(
+        window.__lastStrike &&
+        now - window.__lastStrike < 125
+      ){
+        showToast("🔥 The anvil is overheating!");
+        return;
+      }
+
+      window.__lastStrike = now;
+    }
+
+    var amount = clickPower();
+
+    state.gold += amount;
+    state.totalEarned += amount;
+
+    var anvil = $("anvil");
+
+    if(anvil){
+
+      anvil.style.transform = "scale(.92)";
+
+      setTimeout(function(){
+        anvil.style.transform = "";
+      },70);
+    }
+
+    renderGold();
+    checkAchievements();
+  }
+
   function tick(){
+
     var now = Date.now();
-    var dt = (now - state.lastTick)/1000;
+
+    var elapsed =
+      Math.max(0,now - state.lastTick) / 1000;
+
     state.lastTick = now;
 
-    if(dt > MAX_TICK_DT_SEC){
-      var cappedElapsed = Math.min(dt, 8*3600);
-      var earned = totalRate()*cappedElapsed;
-      if(earned > 0){
-        state.gold += earned;
-        state.totalEarned += earned;
-        showToast("Welcome back — the forge earned "+fmt(earned)+"g while away");
+    if(elapsed > 60){
+      elapsed = 60;
+    }
+
+    var rate = totalRate();
+
+    if(rate > 0){
+
+      var earned = rate * elapsed;
+
+      state.gold += earned;
+      state.totalEarned += earned;
+    }
+
+    renderGold();
+    renderBoostStatus();
+    renderOverheat();
+  }
+
+  /* ---------------- Rendering ---------------- */
+
+  function renderGold(){
+
+    $("goldAmt").textContent =
+      formatNumber(state.gold);
+
+    $("goldRate").textContent =
+      "+" + formatNumber(totalRate()) + "/s";
+
+    $("clickPowerLabel").textContent =
+      formatNumber(clickPower());
+  }
+
+  function renderBoostStatus(){
+
+    var remaining =
+      Math.max(
+        0,
+        state.boostUntil - Date.now()
+      );
+
+    if(remaining <= 0){
+
+      state.boostMult = 1;
+
+      $("boostStatus").textContent =
+        "🔥 x1 — 0s";
+
+      return;
+    }
+
+    $("boostStatus").textContent =
+      "🔥 x" +
+      state.boostMult +
+      " — " +
+      Math.ceil(remaining / 1000) +
+      "s";
+  }
+
+  function renderOverheat(){
+
+    var badge = $("overheatBadge");
+
+    if(!badge) return;
+
+    if(
+      window.__lastStrike &&
+      Date.now() - window.__lastStrike < 125
+    ){
+      badge.style.display = "block";
+      badge.textContent = "Cooling down…";
+    }else{
+      badge.style.display = "none";
+    }
+  }
+
+  function stationCost(station,owned){
+
+    return Math.floor(
+      station.baseCost *
+      Math.pow(1.15,owned)
+    );
+  }
+
+  function renderStations(){
+
+    var container = $("stations");
+
+    container.innerHTML = "";
+
+    STATIONS.forEach(function(s){
+
+      var owned =
+        Number(state.stations[s.id] || 0);
+
+      var cost =
+        stationCost(s,owned);
+
+      var card =
+        document.createElement("div");
+
+      card.className = "station";
+
+      card.innerHTML =
+
+        '<div class="station-info">' +
+
+          '<div class="name">' +
+            escapeHtml(s.name) +
+          '</div>' +
+
+          '<div class="desc">' +
+            escapeHtml(s.desc) +
+          '</div>' +
+
+          '<div class="owned">' +
+            "Owned: " + owned +
+          '</div>' +
+
+        '</div>' +
+
+        '<div class="station-buy">' +
+
+          '<div class="cost">' +
+            formatNumber(cost) +
+            " gold" +
+          '</div>' +
+
+          '<button data-station="' +
+            escapeHtml(s.id) +
+          '">' +
+
+            "Buy" +
+
+          '</button>' +
+
+        '</div>';
+
+      container.appendChild(card);
+    });
+
+    container
+      .querySelectorAll("button[data-station]")
+      .forEach(function(btn){
+
+        btn.addEventListener("click",function(){
+
+          var id = btn.dataset.station;
+
+          var s =
+            STATIONS.find(function(x){
+              return x.id === id;
+            });
+
+          if(!s) return;
+
+          var owned =
+            Number(state.stations[id] || 0);
+
+          var cost =
+            stationCost(s,owned);
+
+          if(state.gold < cost){
+
+            showToast("Not enough gold");
+
+            return;
+          }
+
+          state.gold -= cost;
+
+          state.stations[id] =
+            owned + 1;
+
+          renderAll();
+          save(true);
+        });
+      });
+  }
+
+  function upgradeUnlocked(u){
+
+    return state.totalEarned >= u.cost * .5;
+  }
+
+  function renderUpgrades(){
+
+    var container = $("upgrades");
+
+    container.innerHTML = "";
+
+    var visible = 0;
+
+    UPGRADES.forEach(function(u){
+
+      if(!upgradeUnlocked(u)){
+        return;
       }
-      renderAll();
+
+      visible++;
+
+      var bought =
+        !!state.upgrades[u.id];
+
+      var card =
+        document.createElement("div");
+
+      card.className =
+        "upgrade" +
+        (bought ? " locked" : "");
+
+      card.innerHTML =
+
+        '<div class="upgrade-row">' +
+
+          '<div>' +
+
+            '<div class="name">' +
+              escapeHtml(u.name) +
+            '</div>' +
+
+            '<div class="desc">' +
+              escapeHtml(u.desc) +
+            '</div>' +
+
+          '</div>' +
+
+          '<button ' +
+            (bought ? "disabled" : "") +
+            ' data-upgrade="' +
+            escapeHtml(u.id) +
+          '">' +
+
+            (
+              bought
+              ? "Owned"
+              : formatNumber(u.cost)
+            ) +
+
+          '</button>' +
+
+        '</div>';
+
+      container.appendChild(card);
+    });
+
+    $("noUpgrades").style.display =
+      visible ? "none" : "block";
+
+    container
+      .querySelectorAll("button[data-upgrade]")
+      .forEach(function(btn){
+
+        btn.addEventListener("click",function(){
+
+          var id = btn.dataset.upgrade;
+
+          var u =
+            UPGRADES.find(function(x){
+              return x.id === id;
+            });
+
+          if(!u || state.upgrades[id]){
+            return;
+          }
+
+          if(state.gold < u.cost){
+
+            showToast("Not enough gold");
+
+            return;
+          }
+
+          state.gold -= u.cost;
+
+          state.upgrades[id] = true;
+
+          if(u.effect === "click"){
+            state.clickMult *= u.mult;
+          }
+
+          renderAll();
+          save(true);
+        });
+      });
+  }
+
+  function renderBoosts(){
+
+    var container = $("boosts");
+
+    container.innerHTML = "";
+
+    BOOSTS.forEach(function(b){
+
+      var card =
+        document.createElement("div");
+
+      card.className = "boost-card";
+
+      card.innerHTML =
+
+        '<div class="name">' +
+          escapeHtml(b.name) +
+        '</div>' +
+
+        '<div class="desc">' +
+          escapeHtml(b.desc) +
+        '</div>' +
+
+        '<button data-boost="' +
+          escapeHtml(b.id) +
+        '">' +
+
+          formatNumber(b.cost) +
+          " gold" +
+
+        '</button>';
+
+      container.appendChild(card);
+    });
+
+    container
+      .querySelectorAll("button[data-boost]")
+      .forEach(function(btn){
+
+        btn.addEventListener("click",function(){
+
+          var id = btn.dataset.boost;
+
+          var b =
+            BOOSTS.find(function(x){
+              return x.id === id;
+            });
+
+          if(!b) return;
+
+          if(state.gold < b.cost){
+
+            showToast("Not enough gold");
+
+            return;
+          }
+
+          state.gold -= b.cost;
+
+          state.boostMult = b.mult;
+
+          state.boostUntil =
+            Math.max(
+              Date.now(),
+              state.boostUntil
+            ) + b.duration;
+
+          showToast(
+            b.name +
+            " activated!"
+          );
+
+          renderAll();
+          save(true);
+        });
+      });
+  }
+
+  /* ---------------- Achievements ---------------- */
+
+  var ACHIEVEMENTS = [
+    {
+      id:"first",
+      name:"First Spark",
+      desc:"Earn your first gold.",
+      check:function(){
+        return state.totalEarned >= 1;
+      }
+    },
+    {
+      id:"hundred",
+      name:"Getting Hot",
+      desc:"Earn 100 total gold.",
+      check:function(){
+        return state.totalEarned >= 100;
+      }
+    },
+    {
+      id:"thousand",
+      name:"Forge Worker",
+      desc:"Earn 1,000 total gold.",
+      check:function(){
+        return state.totalEarned >= 1000;
+      }
+    },
+    {
+      id:"million",
+      name:"Forge Tycoon",
+      desc:"Earn 1,000,000 total gold.",
+      check:function(){
+        return state.totalEarned >= 1000000;
+      }
+    },
+    {
+      id:"stations10",
+      name:"Industrialist",
+      desc:"Own 10 stations.",
+      check:function(){
+
+        var total = 0;
+
+        STATIONS.forEach(function(s){
+          total += Number(
+            state.stations[s.id] || 0
+          );
+        });
+
+        return total >= 10;
+      }
+    },
+    {
+      id:"rebirth",
+      name:"Reforged",
+      desc:"Perform your first Rebirth.",
+      check:function(){
+        return state.lifetimePrestiges >= 1;
+      }
+    }
+  ];
+
+  function checkAchievements(){
+
+    ACHIEVEMENTS.forEach(function(a){
+
+      if(
+        !state.achievements[a.id] &&
+        a.check()
+      ){
+
+        state.achievements[a.id] = true;
+
+        showToast(
+          "🎖️ Achievement: " +
+          a.name
+        );
+      }
+    });
+
+    renderAchievementCount();
+  }
+
+  function renderAchievementCount(){
+
+    var unlocked = 0;
+
+    ACHIEVEMENTS.forEach(function(a){
+
+      if(state.achievements[a.id]){
+        unlocked++;
+      }
+    });
+
+    $("achCount").textContent =
+      unlocked +
+      "/" +
+      ACHIEVEMENTS.length;
+  }
+
+  function renderAchievements(){
+
+    var container = $("achList");
+
+    container.innerHTML = "";
+
+    ACHIEVEMENTS.forEach(function(a){
+
+      var unlocked =
+        !!state.achievements[a.id];
+
+      var el =
+        document.createElement("div");
+
+      el.style.cssText =
+        "padding:11px;margin-bottom:7px;" +
+        "border:1px solid var(--ash);" +
+        "border-radius:8px;" +
+        "background:var(--panel-2);" +
+        (unlocked ? "" : "opacity:.45;");
+
+      el.innerHTML =
+
+        '<div style="font-weight:900;">' +
+          (unlocked ? "🏆 " : "🔒 ") +
+          escapeHtml(a.name) +
+        '</div>' +
+
+        '<div style="margin-top:3px;color:var(--text-dim);font-size:10px;">' +
+          escapeHtml(a.desc) +
+        '</div>';
+
+      container.appendChild(el);
+    });
+  }
+
+  /* ---------------- Prestige ---------------- */
+
+  function shardsAvailable(){
+
+    return Math.floor(
+      Math.sqrt(
+        Math.max(
+          0,
+          state.totalEarned / 100000
+        )
+      )
+    );
+  }
+
+  function doPrestige(){
+
+    var shards = shardsAvailable();
+
+    if(shards <= 0){
       return;
     }
 
-    var earned = totalRate()*dt;
-    state.gold += earned;
-    state.totalEarned += earned;
+    state.prestigeShards += shards;
+    state.lifetimePrestiges++;
+
+    state.gold = 0;
+    state.totalEarned = 0;
+    state.clickBase = 1;
+    state.clickMult = 1;
+
+    state.boostUntil = 0;
+    state.boostMult = 1;
+
+    STATIONS.forEach(function(s){
+      state.stations[s.id] = 0;
+    });
+
+    UPGRADES.forEach(function(u){
+      state.upgrades[u.id] = false;
+    });
+
     renderAll();
+    save(true);
+
+    showToast(
+      "♻️ Rebirth complete! +" +
+      shards +
+      " Ember Shards"
+    );
+
+    checkAchievements();
   }
 
-  /* ---------------- Modals ---------------- */
-  var introModal = document.getElementById("introModal");
-  var lbModal = document.getElementById("lbModal");
+  function renderPrestigePanel(){
 
-  function openModal(el){ el.classList.add("show"); }
-  function closeModal(el){ el.classList.remove("show"); }
+    var available =
+      shardsAvailable();
 
-  document.getElementById("helpBtn").addEventListener("click", function(){ openModal(introModal); });
-  document.getElementById("introClose").addEventListener("click", function(){ closeModal(introModal); });
-  document.getElementById("introStart").addEventListener("click", function(){ closeModal(introModal); });
-  introModal.addEventListener("click", function(e){ if(e.target===introModal) closeModal(introModal); });
+    $("prestigeContent").innerHTML =
 
-  document.getElementById("leaderboardBtn").addEventListener("click", function(){
-    renderLeaderboard();
-    try{
-      var saved = localStorage.getItem(LB_NAME_KEY);
-      if(saved) document.getElementById("lbNameInput").value = saved;
-    }catch(e){}
-    openModal(lbModal);
-  });
-  document.getElementById("lbClose").addEventListener("click", function(){ closeModal(lbModal); });
-  lbModal.addEventListener("click", function(e){ if(e.target===lbModal) closeModal(lbModal); });
+      '<p>You currently have <b>' +
+      formatNumber(state.prestigeShards) +
+      '</b> Ember Shards.</p>' +
 
-  var achModal = document.getElementById("achModal");
-  document.getElementById("achBtn").addEventListener("click", function(){ renderAchievements(); openModal(achModal); });
-  document.getElementById("achClose").addEventListener("click", function(){ closeModal(achModal); });
-  achModal.addEventListener("click", function(e){ if(e.target===achModal) closeModal(achModal); });
+      '<p>Available from this run: <b>' +
+      formatNumber(available) +
+      '</b></p>' +
 
-  var prestigeModal = document.getElementById("prestigeModal");
-  document.getElementById("prestigeBtn").addEventListener("click", function(){ renderPrestigePanel(); openModal(prestigeModal); });
-  document.getElementById("prestigeClose").addEventListener("click", function(){ closeModal(prestigeModal); });
-  prestigeModal.addEventListener("click", function(e){ if(e.target===prestigeModal) closeModal(prestigeModal); });
-  document.getElementById("prestigeConfirmBtn").addEventListener("click", function(){
-    if(shardsAvailable() <= 0) return;
-    if(confirm("Rebirth now? This resets your gold, stations, and upgrades — but the Ember Shard bonus is permanent.")){
-      doPrestige();
-      closeModal(prestigeModal);
-    }
-  });
+      '<p style="color:var(--text-dim);font-size:10px;">' +
+      'Rebirth resets gold, stations and upgrades, ' +
+      'but your Ember Shards remain permanently.' +
+      '</p>';
+  }
 
-  var messageOwnerModal = document.getElementById("messageOwnerModal");
-  document.getElementById("messageOwnerBtn").addEventListener("click", function(){ openModal(messageOwnerModal); });
-  document.getElementById("messageOwnerClose").addEventListener("click", function(){ closeModal(messageOwnerModal); });
-  messageOwnerModal.addEventListener("click", function(e){ if(e.target===messageOwnerModal) closeModal(messageOwnerModal); });
-  document.getElementById("messageOwnerSend").addEventListener("click", function(){
-    var textEl = document.getElementById("messageOwnerText");
-    var nameEl = document.getElementById("messageOwnerName");
-    var message = textEl.value.trim();
-    if(!message){ textEl.focus(); return; }
-    if(!API_BASE_URL){
-      showToast("No server configured — message can't be sent.");
+  /* ---------------- Sound ---------------- */
+
+  function beep(freq,duration,type){
+
+    if(!state.soundOn){
       return;
     }
-    var sendBtnEl = document.getElementById("messageOwnerSend");
-    sendBtnEl.disabled = true;
-    fetch(API_BASE_URL + "/api/player-message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: nameEl.value.trim(), message: message, playerId: myPlayerId })
-    })
-      .then(function(r){ if(!r.ok) throw new Error("bad response"); return r.json(); })
-      .then(function(){
-        showToast("Message sent to the owner");
-        textEl.value = "";
-        closeModal(messageOwnerModal);
-      })
-      .catch(function(){
-        showToast("Couldn't reach the server — try again later");
-      })
-      .finally(function(){ sendBtnEl.disabled = false; });
-  });
 
-  var soundBtn = document.getElementById("soundBtn");
-  function updateSoundBtnLabel(){
-    soundBtn.textContent = state.soundOn ? "🔊 Sound" : "🔇 Sound";
-    soundBtn.classList.toggle("sound-off", !state.soundOn);
+    try{
+
+      var AudioContext =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+      var ctx =
+        new AudioContext();
+
+      var osc =
+        ctx.createOscillator();
+
+      var gain =
+        ctx.createGain();
+
+      osc.type = type || "sine";
+      osc.frequency.value = freq;
+
+      gain.gain.value = .03;
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+
+      osc.start();
+
+      setTimeout(function(){
+
+        osc.stop();
+
+        try{
+          ctx.close();
+        }catch(e){}
+
+      },duration);
+
+    }catch(e){}
   }
-  soundBtn.addEventListener("click", function(){
-    state.soundOn = !state.soundOn;
-    updateSoundBtnLabel();
-    if(state.soundOn) beep(440, 100, "triangle");
-  });
-  updateSoundBtnLabel();
 
   /* ---------------- Leaderboard ---------------- */
-  var LB_KEY = "emberFoundryLeaderboard_v1";     // local fallback storage
-  var LB_NAME_KEY = "emberFoundryPlayerName_v1";
-  var LB_PLAYER_ID_KEY = "emberFoundryPlayerId_v1";
-  var IS_PUBLIC_LB = !!API_BASE_URL;
 
-  // A stable per-browser ID, generated once and reused forever, so the
-  // server can tell "you changing your own name" apart from "someone else
-  // trying to take your name." This never identifies you to other players —
-  // it's just an opaque ID, never shown anywhere.
+  var LB_KEY =
+    "emberFoundryLeaderboard_v1";
+
+  var LB_NAME_KEY =
+    "emberFoundryPlayerName_v1";
+
+  var LB_PLAYER_ID_KEY =
+    "emberFoundryPlayerId_v1";
+
+  var IS_PUBLIC_LB =
+    !!API_BASE_URL;
+
   function getOrCreatePlayerId(){
+
     var id = null;
-    try{ id = localStorage.getItem(LB_PLAYER_ID_KEY); }catch(e){}
+
+    try{
+      id =
+        localStorage.getItem(
+          LB_PLAYER_ID_KEY
+        );
+    }catch(e){}
+
     if(!id){
-      id = (window.crypto && window.crypto.randomUUID)
+
+      id =
+        window.crypto &&
+        window.crypto.randomUUID
+
         ? window.crypto.randomUUID()
-        : ("p_" + Date.now() + "_" + Math.random().toString(36).slice(2));
-      try{ localStorage.setItem(LB_PLAYER_ID_KEY, id); }catch(e){}
+
+        : (
+          "p_" +
+          Date.now() +
+          "_" +
+          Math.random()
+            .toString(36)
+            .slice(2)
+        );
+
+      try{
+        localStorage.setItem(
+          LB_PLAYER_ID_KEY,
+          id
+        );
+      }catch(e){}
     }
+
     return id;
   }
-  var myPlayerId = getOrCreatePlayerId();
 
-  // Local (per-browser) fallback, used when API_BASE_URL is blank or unreachable.
+  var myPlayerId =
+    getOrCreatePlayerId();
+
   function getLocalLeaderboard(){
+
     try{
-      var raw = localStorage.getItem(LB_KEY);
-      return raw ? JSON.parse(raw) : [];
-    }catch(e){ return []; }
+
+      var raw =
+        localStorage.getItem(
+          LB_KEY
+        );
+
+      return raw
+        ? JSON.parse(raw)
+        : [];
+
+    }catch(e){
+
+      return [];
+    }
   }
+
   function saveLocalLeaderboard(list){
-    try{ localStorage.setItem(LB_KEY, JSON.stringify(list)); }catch(e){}
+
+    try{
+
+      localStorage.setItem(
+        LB_KEY,
+        JSON.stringify(list)
+      );
+
+    }catch(e){}
   }
-  function submitLocal(name, score){
-    var list = getLocalLeaderboard();
-    var existing = list.filter(function(e){ return e.name===name; })[0];
-    if(existing){ if(score > existing.score) existing.score = score; }
-    else{ list.push({ name:name, score:score }); }
+
+  function submitLocal(name,score){
+
+    var list =
+      getLocalLeaderboard();
+
+    var existing =
+      list.filter(function(e){
+        return e.name === name;
+      })[0];
+
+    if(existing){
+
+      if(score > existing.score){
+        existing.score = score;
+      }
+
+    }else{
+
+      list.push({
+        name:name,
+        score:score
+      });
+    }
+
     saveLocalLeaderboard(list);
   }
 
-  // Update the modal subtitle/footnote to reflect whether this is public or local.
-  (function initLbCopy(){
-    var sub = document.querySelector("#lbModal .modal-sub");
-    var note = document.querySelector("#lbModal .lb-note");
-    if(IS_PUBLIC_LB){
-      if(sub) sub.textContent = "TOP GOLD/SEC — PUBLIC";
-      if(note) note.textContent = "Scores are shared with everyone who plays this game via the same server — your classmates will see your entry here too.";
-    } else {
-      if(sub) sub.textContent = "TOP GOLD/SEC — THIS BROWSER";
-      if(note) note.textContent = "No public server is configured yet, so scores are stored locally on this device/browser only — set API_BASE_URL in the game file to make this shared. See backend/README.md.";
-    }
-  })();
+  function renderLeaderboardList(
+    list,
+    myName,
+    myScore
+  ){
 
-  function renderLeaderboardList(list, myName, myScore){
-    var lbList = document.getElementById("lbList");
-    var lbEmpty = document.getElementById("lbEmpty");
-    if(!list || list.length===0){
-      lbList.innerHTML="";
-      lbEmpty.style.display="block";
+    var lbList =
+      $("lbList");
+
+    var lbEmpty =
+      $("lbEmpty");
+
+    lbList.innerHTML = "";
+
+    if(
+      !list ||
+      !list.length
+    ){
+
+      lbEmpty.style.display =
+        "block";
+
       return;
     }
-    lbEmpty.style.display="none";
-    lbList.innerHTML = list.slice(0,10).map(function(entry, i){
-      var isMe = myName && entry.name===myName && entry.score===myScore;
-      return '<li class="'+(isMe?'me':'')+'">'
-        + '<span class="lb-rank">'+(i+1)+'</span>'
-        + '<span class="lb-name">'+escapeHtml(entry.name)+'</span>'
-        + '<span class="lb-score">'+fmt(entry.score)+'g/s</span>'
-      + '</li>';
-    }).join("");
-  }
-  function escapeHtml(str){
-    var d = document.createElement("div");
-    d.textContent = str;
-    return d.innerHTML;
+
+    lbEmpty.style.display =
+      "none";
+
+    list.forEach(function(entry,index){
+
+      var li =
+        document.createElement("li");
+
+      li.innerHTML =
+
+        '<span class="lb-rank">' +
+          "#" + (index + 1) +
+        '</span>' +
+
+        '<span class="lb-player">' +
+          escapeHtml(entry.name) +
+        '</span>' +
+
+        '<span class="lb-score">' +
+          formatNumber(entry.score) +
+          "/s" +
+        '</span>';
+
+      lbList.appendChild(li);
+    });
   }
 
   function renderLeaderboard(){
+
     var myName;
-    try{ myName = localStorage.getItem(LB_NAME_KEY); }catch(e){ myName=null; }
-    var myScore = Math.floor(totalRate());
+
+    try{
+      myName =
+        localStorage.getItem(
+          LB_NAME_KEY
+        );
+    }catch(e){
+      myName = null;
+    }
+
+    var myScore =
+      Math.floor(totalRate());
 
     if(!IS_PUBLIC_LB){
-      var local = getLocalLeaderboard().sort(function(a,b){ return b.score-a.score; });
-      renderLeaderboardList(local, myName, myScore);
+
+      var local =
+        getLocalLeaderboard()
+          .sort(function(a,b){
+            return b.score - a.score;
+          });
+
+      renderLeaderboardList(
+        local,
+        myName,
+        myScore
+      );
+
       return;
     }
 
-    var lbList = document.getElementById("lbList");
-    lbList.innerHTML = '<li class="lb-empty" style="border:none;">Loading…</li>';
-    fetch(API_BASE_URL + "/api/leaderboard")
-      .then(function(r){ if(!r.ok) throw new Error("bad response"); return r.json(); })
-      .then(function(data){ renderLeaderboardList(data, myName, myScore); })
-      .catch(function(){
-        showToast("Couldn't reach the leaderboard server — showing local scores");
-        var local = getLocalLeaderboard().sort(function(a,b){ return b.score-a.score; });
-        renderLeaderboardList(local, myName, myScore);
-      });
+    $("lbList").innerHTML =
+      '<li class="lb-empty" style="border:none;">Loading…</li>';
+
+    fetch(
+      API_BASE_URL +
+      "/api/leaderboard",
+      {
+        cache:"no-store"
+      }
+    )
+    .then(function(r){
+
+      if(!r.ok){
+        throw new Error(
+          "bad response"
+        );
+      }
+
+      return r.json();
+    })
+    .then(function(data){
+
+      renderLeaderboardList(
+        data,
+        myName,
+        myScore
+      );
+
+    })
+    .catch(function(){
+
+      showToast(
+        "Couldn't reach leaderboard server"
+      );
+
+      var local =
+        getLocalLeaderboard()
+          .sort(function(a,b){
+            return b.score - a.score;
+          });
+
+      renderLeaderboardList(
+        local,
+        myName,
+        myScore
+      );
+    });
   }
 
-  document.getElementById("lbSubmit").addEventListener("click", function(){
-    var input = document.getElementById("lbNameInput");
-    var name = input.value.trim();
-    if(!name){ input.focus(); return; }
-    var score = Math.floor(totalRate());
+  $("lbSubmit")
+    .addEventListener(
+      "click",
+      function(){
 
-    if(!IS_PUBLIC_LB){
-      try{ localStorage.setItem(LB_NAME_KEY, name); }catch(e){}
-      submitLocal(name, score);
-      renderLeaderboard();
-      showToast("Score submitted");
+        var input =
+          $("lbNameInput");
+
+        var name =
+          input.value.trim();
+
+        if(!name){
+
+          input.focus();
+
+          return;
+        }
+
+        var score =
+          Math.floor(
+            totalRate()
+          );
+
+        if(!IS_PUBLIC_LB){
+
+          try{
+            localStorage.setItem(
+              LB_NAME_KEY,
+              name
+            );
+          }catch(e){}
+
+          submitLocal(
+            name,
+            score
+          );
+
+          renderLeaderboard();
+
+          showToast(
+            "Score submitted"
+          );
+
+          return;
+        }
+
+        fetch(
+          API_BASE_URL +
+          "/api/leaderboard",
+          {
+            method:"POST",
+
+            headers:{
+              "Content-Type":
+                "application/json"
+            },
+
+            body:JSON.stringify({
+              name:name,
+              score:score,
+              playerId:myPlayerId
+            })
+          }
+        )
+        .then(function(r){
+
+          if(r.status === 409){
+            throw new Error(
+              "NAME_TAKEN"
+            );
+          }
+
+          if(!r.ok){
+            throw new Error(
+              "SERVER_UNREACHABLE"
+            );
+          }
+
+          return r.json();
+        })
+        .then(function(){
+
+          try{
+            localStorage.setItem(
+              LB_NAME_KEY,
+              name
+            );
+          }catch(e){}
+
+          showToast(
+            "Score submitted — rank updates for everyone"
+          );
+
+          renderLeaderboard();
+        })
+        .catch(function(err){
+
+          if(
+            err.message ===
+            "NAME_TAKEN"
+          ){
+
+            showToast(
+              "That name is taken by another player."
+            );
+
+            input.focus();
+
+            return;
+          }
+
+          showToast(
+            "Couldn't reach server"
+          );
+        });
+      }
+    );
+
+  /* ---------------- Global Chat ---------------- */
+
+  var chatSocket = null;
+
+  var chatMessages = [];
+
+  var CHAT_NAME_KEY =
+    "emberFoundryChatName_v1";
+
+  function saveChatName(name){
+
+    try{
+      localStorage.setItem(
+        CHAT_NAME_KEY,
+        name
+      );
+    }catch(e){}
+  }
+
+  function loadChatName(){
+
+    try{
+      return (
+        localStorage.getItem(
+          CHAT_NAME_KEY
+        ) || ""
+      );
+    }catch(e){
+      return "";
+    }
+  }
+
+  function renderChat(){
+
+    var container =
+      $("chatMessages");
+
+    if(!container){
       return;
     }
 
-    fetch(API_BASE_URL + "/api/leaderboard", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name, score: score, playerId: myPlayerId })
-    })
-      .then(function(r){
-        if(r.status === 409){
-          throw new Error("NAME_TAKEN");
-        }
-        if(!r.ok) throw new Error("SERVER_UNREACHABLE");
-        return r.json();
-      })
-      .then(function(){
-        try{ localStorage.setItem(LB_NAME_KEY, name); }catch(e){}
-        showToast("Score submitted — rank updates for everyone");
-        renderLeaderboard();
-      })
-      .catch(function(err){
-        if(err.message === "NAME_TAKEN"){
-          // Do NOT fall back to local storage here — the whole point is
-          // that this name belongs to someone else on the shared board.
-          showToast("That name is taken by another player — pick a different one.");
-          input.focus();
-          return;
-        }
-        showToast("Couldn't reach the server — saved locally instead");
-        try{ localStorage.setItem(LB_NAME_KEY, name); }catch(e){}
-        submitLocal(name, score);
-        renderLeaderboard();
-      });
-  });
+    if(!chatMessages.length){
 
-  /* ---------------- Owner admin events (one-way, real-time) ---------------- */
-  // Connects to the same backend as the leaderboard, over WebSocket, and
-  // reacts to whatever event the owner broadcasts. Gold Rain and Global
-  // Boost apply directly to THIS player's own local state — there is no
-  // shared server-side wallet, so this can never desync or reset anyone
-  // else's save. Nothing here reads or writes any other player's data.
-  (function initAdminEvents(){
-    if (!API_BASE_URL) return; // no backend configured, skip entirely
+      container.innerHTML =
+        '<div class="lb-empty" id="chatEmpty">' +
+        "No messages yet. Start the conversation!" +
+        "</div>";
 
-    var announceToastEl = document.getElementById("announceToast");
-    var announceTimer = null;
-    function showAnnouncement(msg, adminName){
-      if(!announceToastEl) return;
-      var who = adminName ? ("[👑 Owner] " + adminName) : "📢";
-      announceToastEl.textContent = who + ": " + msg;
-      announceToastEl.classList.add("show");
-      clearTimeout(announceTimer);
-      announceTimer = setTimeout(function(){ announceToastEl.classList.remove("show"); }, 15000);
+      return;
     }
 
-    var overheatImmuneUntil = 0;
+    container.innerHTML = "";
 
-    function handleEvent(eventType, payload){
-      var who = payload.adminName || "Owner";
-      var prefix = payload.mysteryBox ? "🎰 Mystery Box! " : "";
+    chatMessages
+      .slice(-100)
+      .forEach(function(m){
+
+        var wrapper =
+          document.createElement("div");
+
+        wrapper.className =
+          "chat-message";
+
+        var isOwner =
+          String(m.name || "")
+            .toLowerCase() ===
+          OWNER_NAME.toLowerCase();
+
+        var displayName =
+          isOwner
+          ? "👑 " + OWNER_TITLE
+          : String(m.name || "Anonymous");
+
+        var date =
+          new Date(
+            Number(m.sentAt || Date.now())
+          );
+
+        var time =
+          date.toLocaleTimeString(
+            [],
+            {
+              hour:"2-digit",
+              minute:"2-digit"
+            }
+          );
+
+        wrapper.innerHTML =
+
+          '<div class="chat-name ' +
+          (isOwner ? "owner" : "") +
+          '">' +
+
+            escapeHtml(displayName) +
+
+            '<span class="chat-time">' +
+              escapeHtml(time) +
+            '</span>' +
+
+          '</div>' +
+
+          '<div class="chat-text">' +
+            escapeHtml(m.message || "") +
+          '</div>';
+
+        container.appendChild(
+          wrapper
+        );
+      });
+
+    container.scrollTop =
+      container.scrollHeight;
+  }
+
+  function setChatStatus(text){
+
+    var el =
+      $("chatStatus");
+
+    if(el){
+      el.textContent = text;
+    }
+  }
+
+  function connectGlobalChat(){
+
+    if(!API_BASE_URL){
+
+      setChatStatus(
+        "Global chat unavailable — no server configured."
+      );
+
+      return;
+    }
+
+    if(chatSocket){
+
+      try{
+        chatSocket.close();
+      }catch(e){}
+    }
+
+    var wsUrl =
+      API_BASE_URL
+        .replace(/^http/,"ws") +
+      "/ws";
+
+    chatSocket =
+      new WebSocket(wsUrl);
+
+    chatSocket.onopen =
+      function(){
+
+        setChatStatus(
+          "🟢 Connected — global chat is live"
+        );
+      };
+
+    chatSocket.onmessage =
+      function(evt){
+
+        try{
+
+          var data =
+            JSON.parse(
+              evt.data
+            );
+
+          if(
+            data.type ===
+            "global_chat"
+          ){
+
+            chatMessages.push({
+              name:data.name,
+              message:data.message,
+              sentAt:data.sentAt
+            });
+
+            if(chatMessages.length > 100){
+              chatMessages =
+                chatMessages.slice(-100);
+            }
+
+            renderChat();
+          }
+
+        }catch(e){}
+      };
+
+    chatSocket.onclose =
+      function(){
+
+        setChatStatus(
+          "🟠 Disconnected — reconnecting..."
+        );
+
+        setTimeout(
+          connectGlobalChat,
+          3000
+        );
+      };
+
+    chatSocket.onerror =
+      function(){
+
+        try{
+          chatSocket.close();
+        }catch(e){}
+      };
+  }
+
+  function sendGlobalChat(){
+
+    var name =
+      $("chatName")
+        .value
+        .trim();
+
+    var message =
+      $("chatText")
+        .value
+        .trim();
+
+    if(!name){
+
+      showToast(
+        "Enter your name first"
+      );
+
+      $("chatName").focus();
+
+      return;
+    }
+
+    if(!message){
+
+      $("chatText").focus();
+
+      return;
+    }
+
+    if(!API_BASE_URL){
+
+      showToast(
+        "Global chat server unavailable"
+      );
+
+      return;
+    }
+
+    saveChatName(name);
+
+    var sendBtn =
+      $("chatSend");
+
+    sendBtn.disabled = true;
+
+    fetch(
+      API_BASE_URL +
+      "/api/global-chat",
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":
+            "application/json"
+        },
+
+        body:JSON.stringify({
+          name:name,
+          message:message
+        })
+      }
+    )
+    .then(function(r){
+
+      if(!r.ok){
+        throw new Error(
+          "chat failed"
+        );
+      }
+
+      $("chatText").value = "";
+
+    })
+    .catch(function(){
+
+      showToast(
+        "Couldn't send chat message"
+      );
+
+    })
+    .finally(function(){
+
+      sendBtn.disabled = false;
+
+    });
+  }
+
+  /* ---------------- Admin Events ---------------- */
+
+  (function initAdminEvents(){
+
+    if(!API_BASE_URL){
+      return;
+    }
+
+    var announceToastEl =
+      $("announceToast");
+
+    var announceTimer = null;
+
+    function showAnnouncement(
+      msg,
+      adminName
+    ){
+
+      if(!announceToastEl){
+        return;
+      }
+
+      /*
+        The owner title is permanent.
+        Ignore optional admin names coming from
+        the client/server event payload.
+      */
+
+      var sender =
+        OWNER_TITLE;
+
+      announceToastEl.innerHTML =
+        '<b>👑 ' +
+        escapeHtml(sender) +
+        '</b><br>' +
+        escapeHtml(msg);
+
+      announceToastEl.classList.add(
+        "show"
+      );
+
+      clearTimeout(
+        announceTimer
+      );
+
+      announceTimer =
+        setTimeout(
+          function(){
+
+            announceToastEl.classList.remove(
+              "show"
+            );
+
+          },
+          15000
+        );
+    }
+
+    function handleEvent(
+      eventType,
+      payload
+    ){
+
+      payload =
+        payload || {};
 
       if(eventType === "announcement"){
-        showAnnouncement(prefix + payload.message, who);
-        flashScreen("rgba(255,178,39,0.10)", 700);
 
-      } else if(eventType === "gold_rain"){
-        var amount = Number(payload.amount) || 0;
+        showAnnouncement(
+          payload.message || "",
+          OWNER_NAME
+        );
+
+        return;
+      }
+
+      if(eventType === "gold_rain"){
+
+        var amount =
+          Number(payload.amount) || 0;
+
         if(amount > 0){
+
           state.gold += amount;
           state.totalEarned += amount;
-          showAnnouncement(prefix + "💰 Gold Rain! +" + fmt(amount) + "g", who);
-          spawnEmojiRain(["💰","🪙","✨"], 35);
-          flashScreen("rgba(255,178,39,0.12)", 800);
+
           renderAll();
+          save(true);
+
+          showToast(
+            "🔥 Carl sent everyone " +
+            formatNumber(amount) +
+            " gold!"
+          );
         }
 
-      } else if(eventType === "global_boost"){
-        var mult = Number(payload.mult) || 1;
-        var durationMs = Number(payload.durationMs) || 0;
-        if(mult > 1 && durationMs > 0){
-          activeBoosts.push({ id:"admin_"+Date.now(), mult:mult, endsAt: Date.now()+durationMs });
-          showAnnouncement(prefix + "🔥 Free Global Boost! x" + mult + " for " + Math.round(durationMs/1000) + "s", who);
-          flashScreen("rgba(255,107,53,0.18)", 900);
-          pulsePanel("#boosts", "rgba(255,107,53,0.6)");
-          glowAnvil("rgba(255,107,53,0.7)", 1400);
-          renderAll();
-        }
-
-      } else if(eventType === "overheat_immunity"){
-        var imDurationMs = Number(payload.durationMs) || 0;
-        if(imDurationMs > 0){
-          overheatImmuneUntil = Date.now() + imDurationMs;
-          showAnnouncement(prefix + "🛡️ Overheat Immunity for " + Math.round(imDurationMs/1000) + "s — click away!", who);
-          flashScreen("rgba(127,191,106,0.15)", 800);
-          glowAnvil("rgba(127,191,106,0.8)", 1600);
-        }
-
-      } else if(eventType === "auto_click"){
-        var cps = Number(payload.clicksPerSecond) || 3;
-        var acDurationMs = Number(payload.durationMs) || 0;
-        if(acDurationMs > 0 && cps > 0){
-          var intervalMs = Math.max(50, Math.round(1000/cps));
-          var acEndsAt = Date.now() + acDurationMs;
-          showAnnouncement(prefix + "🤖 Auto Strike active for " + Math.round(acDurationMs/1000) + "s!", who);
-          glowAnvil("rgba(200,192,179,0.8)", 1200);
-          var acTimer = setInterval(function(){
-            if(Date.now() >= acEndsAt){ clearInterval(acTimer); return; }
-            if(typeof performStrike === "function") performStrike();
-          }, intervalMs);
-        }
-
-      } else if(eventType === "free_station"){
-        var fsId = payload.stationId;
-        var fsAmount = Number(payload.amount) || 1;
-        var fsStation = STATIONS.filter(function(s){ return s.id===fsId; })[0];
-        if(fsStation && fsAmount > 0){
-          state.stations[fsId] = (state.stations[fsId]||0) + fsAmount;
-          showAnnouncement(prefix + "🎁 Free " + fsStation.name + " x" + fsAmount + "!", who);
-          spawnEmojiRain([fsStation.icon || "🎁", "✨"], 24);
-          pulsePanel("#stations", "rgba(255,107,53,0.5)");
-          renderAll();
-        }
-
-      } else if(eventType === "free_upgrade"){
-        var fuId = payload.upgradeId;
-        var fuUpgrade = UPGRADES.filter(function(u){ return u.id===fuId; })[0];
-        if(fuUpgrade && !state.upgrades[fuId]){
-          state.upgrades[fuId] = true;
-          fuUpgrade.apply();
-          showAnnouncement(prefix + "🎁 Free upgrade: " + fuUpgrade.name + "!", who);
-          spawnEmojiRain([fuUpgrade.icon || "🔧", "✨"], 24);
-          pulsePanel("#upgrades", "rgba(127,191,106,0.5)");
-          renderAll();
-        }
-
-      } else if(eventType === "shard_gift"){
-        var shardAmt = Number(payload.amount) || 0;
-        if(shardAmt > 0){
-          state.prestigeShards += shardAmt;
-          showAnnouncement(prefix + "💎 +" + shardAmt + " Ember Shard" + (shardAmt===1?"":"s") + " gifted!", who);
-          spawnEmojiRain(["💎","✨"], 28);
-          flashScreen("rgba(168,132,255,0.14)", 900);
-          renderAll();
-        }
-
-      } else if(eventType === "confetti"){
-        showAnnouncement(prefix + "🎉 Celebration time!", who);
-        spawnConfetti();
-
-      } else if(eventType === "reset_cooldowns"){
-        BOOSTS.forEach(function(b){ boostCooldownUntil[b.id] = 0; });
-        showAnnouncement(prefix + "♻️ All boost cooldowns cleared — go wild!", who);
-        pulsePanel("#boosts", "rgba(127,191,106,0.6)");
-        renderAll();
+        return;
       }
-    }
 
-    function spawnConfetti(){
-      var colors = ["#ff6b35","#ffb627","#7fbf6a","#c8c0b3","#a8451f"];
-      for(var i=0;i<60;i++){
-        (function(){
-          var el = document.createElement("div");
-          var color = colors[Math.floor(Math.random()*colors.length)];
-          var startX = Math.random()*window.innerWidth;
-          var size = 6+Math.random()*6;
-          var duration = 1800+Math.random()*1400;
-          el.style.position="fixed";
-          el.style.top="-20px";
-          el.style.left=startX+"px";
-          el.style.width=size+"px";
-          el.style.height=(size*0.6)+"px";
-          el.style.background=color;
-          el.style.opacity="0.9";
-          el.style.zIndex="200";
-          el.style.pointerEvents="none";
-          el.style.transform="rotate("+(Math.random()*360)+"deg)";
-          el.style.transition="transform "+duration+"ms linear, top "+duration+"ms linear, opacity "+duration+"ms linear";
-          document.body.appendChild(el);
-          requestAnimationFrame(function(){
-            el.style.top = (window.innerHeight+20)+"px";
-            el.style.transform="rotate("+(Math.random()*720)+"deg)";
-            el.style.opacity="0";
-          });
-          setTimeout(function(){ el.remove(); }, duration+200);
-        })();
+      if(eventType === "global_boost"){
+
+        var mult =
+          Number(payload.mult) || 1;
+
+        var durationMs =
+          Number(payload.durationMs) || 0;
+
+        if(
+          mult > 1 &&
+          durationMs > 0
+        ){
+
+          state.boostMult =
+            Math.max(
+              state.boostMult || 1,
+              mult
+            );
+
+          state.boostUntil =
+            Math.max(
+              Date.now(),
+              state.boostUntil
+            ) + durationMs;
+
+          renderAll();
+
+          showToast(
+            "🔥 GLOBAL BOOST x" +
+            mult +
+            " activated by Carl!"
+          );
+        }
+
+        return;
       }
-    }
 
-    // Rains a chosen set of emoji down from the top of the screen — used to
-    // give each admin event its own distinct visual identity (coins for
-    // gold, gears for stations, gems for shards, etc.).
-    function spawnEmojiRain(emojis, count){
-      count = count || 30;
-      for(var i=0;i<count;i++){
-        (function(){
-          var el = document.createElement("div");
-          var emoji = emojis[Math.floor(Math.random()*emojis.length)];
-          var startX = Math.random()*window.innerWidth;
-          var size = 20+Math.random()*14;
-          var duration = 1600+Math.random()*1200;
-          var delay = Math.random()*400;
-          el.textContent = emoji;
-          el.style.position="fixed";
-          el.style.top="-40px";
-          el.style.left=startX+"px";
-          el.style.fontSize=size+"px";
-          el.style.zIndex="200";
-          el.style.pointerEvents="none";
-          el.style.opacity="0.95";
-          el.style.transition="top "+duration+"ms ease-in, transform "+duration+"ms ease-in, opacity "+duration+"ms ease-in";
-          el.style.transform="rotate(0deg)";
-          document.body.appendChild(el);
-          setTimeout(function(){
-            requestAnimationFrame(function(){
-              el.style.top=(window.innerHeight+40)+"px";
-              el.style.transform="rotate("+(Math.random()*360-180)+"deg)";
-              el.style.opacity="0";
+      if(eventType === "overheat_immunity"){
+
+        var duration =
+          Number(payload.durationMs) || 0;
+
+        if(duration > 0){
+
+          window.__overheatImmuneUntil =
+            Math.max(
+              Date.now(),
+              window.__overheatImmuneUntil || 0
+            ) + duration;
+
+          showToast(
+            "⚒️ Carl enabled Overheat Immunity!"
+          );
+        }
+
+        return;
+      }
+
+      if(eventType === "auto_click"){
+
+        var autoDuration =
+          Number(payload.durationMs) || 0;
+
+        var clicksPerSecond =
+          Number(
+            payload.clicksPerSecond
+          ) || 3;
+
+        if(
+          autoDuration > 0 &&
+          clicksPerSecond > 0
+        ){
+
+          var interval =
+            1000 /
+            clicksPerSecond;
+
+          var end =
+            Date.now() +
+            autoDuration;
+
+          var timer =
+            setInterval(
+              function(){
+
+                if(Date.now() >= end){
+
+                  clearInterval(
+                    timer
+                  );
+
+                  return;
+                }
+
+                strike();
+
+              },
+              interval
+            );
+
+          showToast(
+            "⚒️ Carl activated Auto Strike!"
+          );
+        }
+
+        return;
+      }
+
+      if(eventType === "free_station"){
+
+        var stationId =
+          payload.stationId;
+
+        var amount =
+          Number(payload.amount) || 1;
+
+        if(
+          stationId &&
+          amount > 0 &&
+          state.stations
+        ){
+
+          state.stations[stationId] =
+            Number(
+              state.stations[stationId] || 0
+            ) + amount;
+
+          renderAll();
+          save(true);
+
+          showToast(
+            "🔥 Carl gave you a station!"
+          );
+        }
+
+        return;
+      }
+
+      if(eventType === "free_upgrade"){
+
+        var upgradeId =
+          payload.upgradeId;
+
+        if(
+          upgradeId &&
+          state.upgrades
+        ){
+
+          var upgrade =
+            UPGRADES.find(function(u){
+              return u.id === upgradeId;
             });
-          }, delay);
-          setTimeout(function(){ el.remove(); }, duration+delay+200);
-        })();
+
+          if(upgrade){
+
+            state.upgrades[upgradeId] = true;
+
+            if(upgrade.effect === "click"){
+              state.clickMult *=
+                upgrade.mult;
+            }
+
+            renderAll();
+            save(true);
+
+            showToast(
+              "🔥 Carl unlocked an upgrade for everyone!"
+            );
+          }
+        }
+
+        return;
+      }
+
+      if(eventType === "shard_gift"){
+
+        var shards =
+          Number(payload.amount) || 0;
+
+        if(shards > 0){
+
+          state.prestigeShards += shards;
+
+          renderAll();
+          save(true);
+
+          showToast(
+            "💎 Carl gave everyone +" +
+            shards +
+            " Ember Shards!"
+          );
+        }
+
+        return;
+      }
+
+      if(eventType === "confetti"){
+
+        showToast(
+          "🎉 Carl launched a forge celebration!"
+        );
+
+        return;
+      }
+
+      if(eventType === "reset_cooldowns"){
+
+        state.boostUntil = 0;
+        state.boostMult = 1;
+
+        renderAll();
+
+        showToast(
+          "🔥 Carl reset the boost cooldowns!"
+        );
+
+        return;
+      }
+
+      if(eventType === "mystery_box"){
+
+        showToast(
+          "🎁 Carl opened a Mystery Box!"
+        );
+
+        return;
       }
     }
 
-    // Brief full-screen color wash — used for boosts/immunity to make the
-    // whole page visibly react to the event for a moment.
-    function flashScreen(rgba, durationMs){
-      durationMs = durationMs || 900;
-      var el = document.createElement("div");
-      el.style.position="fixed";
-      el.style.inset="0";
-      el.style.background=rgba;
-      el.style.zIndex="150";
-      el.style.pointerEvents="none";
-      el.style.opacity="1";
-      el.style.transition="opacity "+durationMs+"ms ease-out";
-      document.body.appendChild(el);
-      requestAnimationFrame(function(){ el.style.opacity="0"; });
-      setTimeout(function(){ el.remove(); }, durationMs+100);
-    }
+    window.__isOverheatImmune =
+      function(){
 
-    // Temporary glow pulse around a panel — used to draw the eye to
-    // whatever section an event affects (e.g. Boosts on reset_cooldowns).
-    function pulsePanel(selector, glowColor){
-      var el = document.querySelector(selector);
-      if(!el) return;
-      var prevBoxShadow = el.style.boxShadow;
-      var prevTransition = el.style.transition;
-      el.style.transition = "box-shadow .3s ease";
-      el.style.boxShadow = "0 0 0 3px " + glowColor + ", 0 0 24px " + glowColor;
-      setTimeout(function(){
-        el.style.boxShadow = prevBoxShadow;
-        setTimeout(function(){ el.style.transition = prevTransition; }, 350);
-      }, 1400);
-    }
+        return Date.now() <
+          (
+            window.__overheatImmuneUntil ||
+            0
+          );
+      };
 
-    // Anvil glow — used for overheat immunity and auto strike, so the
-    // anvil itself visibly reacts, not just the banner text.
-    function glowAnvil(color, durationMs){
-      durationMs = durationMs || 1200;
-      var prevBoxShadow = anvil.style.boxShadow;
-      anvil.style.transition = "box-shadow .3s ease";
-      anvil.style.boxShadow = "0 0 0 4px " + color + ", 0 0 40px " + color;
-      setTimeout(function(){ anvil.style.boxShadow = prevBoxShadow; }, durationMs);
-    }
+    var wsUrl =
+      API_BASE_URL
+        .replace(/^http/,"ws") +
+      "/ws";
 
-    // Expose to the click handler below without polluting global scope.
-    window.__isOverheatImmune = function(){ return Date.now() < overheatImmuneUntil; };
-
-    var wsUrl = API_BASE_URL.replace(/^http/, "ws") + "/ws";
     var socket;
 
     function connect(){
-      socket = new WebSocket(wsUrl);
-      socket.onmessage = function(evt){
-        try{
-          var data = JSON.parse(evt.data);
-          if(data.type === "admin_event" && data.eventType){
-            handleEvent(data.eventType, data.payload || {});
-          }
-        }catch(e){}
-      };
-      socket.onclose = function(){
-        // reconnect after a short delay if the connection drops
-        setTimeout(connect, 3000);
-      };
-      socket.onerror = function(){ socket.close(); };
+
+      socket =
+        new WebSocket(wsUrl);
+
+      socket.onmessage =
+        function(evt){
+
+          try{
+
+            var data =
+              JSON.parse(
+                evt.data
+              );
+
+            if(
+              data.type ===
+              "admin_event" &&
+              data.eventType
+            ){
+
+              handleEvent(
+                data.eventType,
+                data.payload || {}
+              );
+            }
+
+          }catch(e){}
+        };
+
+      socket.onclose =
+        function(){
+
+          setTimeout(
+            connect,
+            3000
+          );
+        };
+
+      socket.onerror =
+        function(){
+
+          try{
+            socket.close();
+          }catch(e){}
+        };
     }
+
     connect();
+
   })();
 
-  /* ---------------- Boot ---------------- */
-  load();
-  updateSoundBtnLabel();
-  renderAll();
-  setInterval(tick, 200);
-  setInterval(function(){ save(true); }, 15000);
-  window.addEventListener("beforeunload", function(){ save(true); });
+  /* ---------------- UI events ---------------- */
 
-  var HAS_PLAYED_KEY = "emberFoundryHasPlayed_v1";
+  $("anvil")
+    .addEventListener(
+      "click",
+      strike
+    );
+
+  $("helpBtn")
+    .addEventListener(
+      "click",
+      function(){
+        openModal(
+          $("introModal")
+        );
+      }
+    );
+
+  $("leaderboardBtn")
+    .addEventListener(
+      "click",
+      function(){
+
+        renderLeaderboard();
+
+        try{
+
+          var saved =
+            localStorage.getItem(
+              LB_NAME_KEY
+            );
+
+          if(saved){
+
+            $("lbNameInput")
+              .value = saved;
+          }
+
+        }catch(e){}
+
+        openModal(
+          $("lbModal")
+        );
+      }
+    );
+
+  $("chatBtn")
+    .addEventListener(
+      "click",
+      function(){
+
+        var saved =
+          loadChatName();
+
+        if(saved){
+          $("chatName").value =
+            saved;
+        }
+
+        openModal(
+          $("chatModal")
+        );
+
+        renderChat();
+      }
+    );
+
+  $("chatSend")
+    .addEventListener(
+      "click",
+      sendGlobalChat
+    );
+
+  $("chatText")
+    .addEventListener(
+      "keydown",
+      function(e){
+
+        if(e.key === "Enter"){
+          sendGlobalChat();
+        }
+      }
+    );
+
+  $("lbClose")
+    .addEventListener(
+      "click",
+      function(){
+        closeModal(
+          $("lbModal")
+        );
+      }
+    );
+
+  $("chatClose")
+    .addEventListener(
+      "click",
+      function(){
+        closeModal(
+          $("chatModal")
+        );
+      }
+    );
+
+  $("introClose")
+    .addEventListener(
+      "click",
+      function(){
+        closeModal(
+          $("introModal")
+        );
+      }
+    );
+
+  $("achBtn")
+    .addEventListener(
+      "click",
+      function(){
+
+        renderAchievements();
+
+        openModal(
+          $("achModal")
+        );
+      }
+    );
+
+  $("achClose")
+    .addEventListener(
+      "click",
+      function(){
+        closeModal(
+          $("achModal")
+        );
+      }
+    );
+
+  $("prestigeBtn")
+    .addEventListener(
+      "click",
+      function(){
+
+        renderPrestigePanel();
+
+        openModal(
+          $("prestigeModal")
+        );
+      }
+    );
+
+  $("prestigeClose")
+    .addEventListener(
+      "click",
+      function(){
+        closeModal(
+          $("prestigeModal")
+        );
+      }
+    );
+
+  $("prestigeConfirmBtn")
+    .addEventListener(
+      "click",
+      function(){
+
+        if(
+          shardsAvailable() <= 0
+        ){
+          return;
+        }
+
+        if(
+          confirm(
+            "Rebirth now? This resets your gold, stations, and upgrades — but Ember Shards are permanent."
+          )
+        ){
+
+          doPrestige();
+
+          closeModal(
+            $("prestigeModal")
+          );
+        }
+      }
+    );
+
+  $("messageOwnerBtn")
+    .addEventListener(
+      "click",
+      function(){
+
+        openModal(
+          $("messageOwnerModal")
+        );
+      }
+    );
+
+  $("messageOwnerClose")
+    .addEventListener(
+      "click",
+      function(){
+
+        closeModal(
+          $("messageOwnerModal")
+        );
+      }
+    );
+
+  $("messageOwnerSend")
+    .addEventListener(
+      "click",
+      function(){
+
+        var textEl =
+          $("messageOwnerText");
+
+        var nameEl =
+          $("messageOwnerName");
+
+        var message =
+          textEl.value.trim();
+
+        if(!message){
+
+          textEl.focus();
+
+          return;
+        }
+
+        if(!API_BASE_URL){
+
+          showToast(
+            "No server configured"
+          );
+
+          return;
+        }
+
+        var sendBtnEl =
+          $("messageOwnerSend");
+
+        sendBtnEl.disabled = true;
+
+        fetch(
+          API_BASE_URL +
+          "/api/player-message",
+          {
+            method:"POST",
+
+            headers:{
+              "Content-Type":
+                "application/json"
+            },
+
+            body:JSON.stringify({
+              name:
+                nameEl.value.trim() ||
+                "Anonymous player",
+
+              message:message,
+
+              playerId:myPlayerId
+            })
+          }
+        )
+        .then(function(r){
+
+          if(!r.ok){
+            throw new Error(
+              "bad response"
+            );
+          }
+
+          return r.json();
+
+        })
+        .then(function(){
+
+          showToast(
+            "Message sent to Carl"
+          );
+
+          textEl.value = "";
+
+          closeModal(
+            $("messageOwnerModal")
+          );
+
+        })
+        .catch(function(){
+
+          showToast(
+            "Couldn't reach the server"
+          );
+
+        })
+        .finally(function(){
+
+          sendBtnEl.disabled =
+            false;
+        });
+      }
+    );
+
+  $("soundBtn")
+    .addEventListener(
+      "click",
+      function(){
+
+        state.soundOn =
+          !state.soundOn;
+
+        updateSoundBtnLabel();
+
+        if(state.soundOn){
+          beep(
+            440,
+            100,
+            "triangle"
+          );
+        }
+      }
+    );
+
+  function updateSoundBtnLabel(){
+
+    $("soundBtn").textContent =
+      state.soundOn
+      ? "🔊 Sound"
+      : "🔇 Sound";
+
+    $("soundBtn").classList.toggle(
+      "sound-off",
+      !state.soundOn
+    );
+  }
+
+  $("saveBtn")
+    .addEventListener(
+      "click",
+      function(){
+        save(false);
+      }
+    );
+
+  /*
+    Close modals when clicking outside them.
+  */
+
+  [
+    $("introModal"),
+    $("lbModal"),
+    $("chatModal"),
+    $("achModal"),
+    $("prestigeModal"),
+    $("messageOwnerModal")
+  ].forEach(function(modal){
+
+    modal.addEventListener(
+      "click",
+      function(e){
+
+        if(e.target === modal){
+          closeModal(modal);
+        }
+      }
+    );
+  });
+
+  /* ---------------- Render all ---------------- */
+
+  function renderAll(){
+
+    renderGold();
+    renderBoostStatus();
+    renderBoosts();
+    renderStations();
+    renderUpgrades();
+    renderAchievementCount();
+    updateSoundBtnLabel();
+  }
+
+  /* ---------------- Boot ---------------- */
+
+  load();
+
+  updateSoundBtnLabel();
+
+  renderAll();
+
+  checkServerReset();
+
+  setInterval(
+    tick,
+    200
+  );
+
+  setInterval(
+    function(){
+      save(true);
+    },
+    15000
+  );
+
+  /*
+    Check for an admin reset periodically.
+    This lets a player who leaves the tab open receive
+    a reset without refreshing.
+  */
+  setInterval(
+    checkServerReset,
+    15000
+  );
+
+  window.addEventListener(
+    "beforeunload",
+    function(){
+      save(true);
+    }
+  );
+
+  /*
+    Global chat connects as soon as the game loads.
+  */
+  connectGlobalChat();
+
+  var HAS_PLAYED_KEY =
+    "emberFoundryHasPlayed_v1";
+
   var hasPlayed = false;
-  try{ hasPlayed = !!localStorage.getItem(HAS_PLAYED_KEY); }catch(e){}
+
+  try{
+
+    hasPlayed =
+      !!localStorage.getItem(
+        HAS_PLAYED_KEY
+      );
+
+  }catch(e){}
+
   if(!hasPlayed){
-    openModal(introModal);
-    try{ localStorage.setItem(HAS_PLAYED_KEY, "1"); }catch(e){}
+
+    openModal(
+      $("introModal")
+    );
+
+    try{
+
+      localStorage.setItem(
+        HAS_PLAYED_KEY,
+        "1"
+      );
+
+    }catch(e){}
   }
 
 })();
 </script>
 
 </body>
-      </html>
+  </html>
