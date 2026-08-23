@@ -1,7 +1,9 @@
 services:
   - type: web
-    name: ember-foundry-leaderboard
+    name: ember-foundry
     runtime: node
-    plan: free
     buildCommand: npm install
     startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
