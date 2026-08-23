@@ -3,133 +3,511 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ember Foundry — Admin</title>
+<title>Ember Foundry — Owner Panel</title>
+
 <style>
+  *{
+    box-sizing:border-box;
+  }
+
   body{
-    margin:0;padding:20px;
-    background:#120d0a;color:#ece5d8;
-    font-family:sans-serif;
+    margin:0;
+    padding:20px;
+    background:
+      radial-gradient(circle at top,#2b160c 0%,#120d0a 45%,#080605 100%);
+    color:#ece5d8;
+    font-family:Arial,sans-serif;
+    min-height:100vh;
   }
-  h1{font-size:18px;color:#ffb627;}
-  label{display:block;margin-top:16px;font-size:13px;color:#9c9184;}
+
+  .owner-header{
+    position:relative;
+    overflow:hidden;
+    padding:22px;
+    margin-bottom:18px;
+    border:1px solid #6b3a19;
+    border-radius:18px;
+    background:
+      linear-gradient(135deg,#24130b,#17100c);
+    box-shadow:
+      0 0 25px rgba(255,107,53,.18),
+      inset 0 0 25px rgba(255,182,39,.04);
+  }
+
+  .owner-header::before{
+    content:"";
+    position:absolute;
+    width:180px;
+    height:180px;
+    right:-70px;
+    top:-80px;
+    border-radius:50%;
+    background:#ff6b35;
+    opacity:.08;
+    filter:blur(10px);
+  }
+
+  .owner-title{
+    position:relative;
+    font-size:13px;
+    letter-spacing:2px;
+    color:#ffb627;
+    font-weight:800;
+    text-transform:uppercase;
+  }
+
+  .owner-name{
+    position:relative;
+    margin-top:7px;
+    font-size:30px;
+    font-weight:900;
+    color:#fff2d5;
+    text-shadow:
+      0 0 10px rgba(255,182,39,.45),
+      0 0 25px rgba(255,107,53,.25);
+  }
+
+  .owner-badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-left:7px;
+    padding:5px 10px;
+    border-radius:999px;
+    border:1px solid #ffb627;
+    background:linear-gradient(135deg,#5b270d,#2d1409);
+    color:#ffd36a;
+    font-size:12px;
+    letter-spacing:1px;
+    vertical-align:middle;
+    box-shadow:
+      0 0 10px rgba(255,182,39,.35),
+      inset 0 0 8px rgba(255,182,39,.08);
+  }
+
+  .owner-subtitle{
+    position:relative;
+    margin-top:8px;
+    color:#9c9184;
+    font-size:12px;
+  }
+
+  h1{
+    font-size:18px;
+    color:#ffb627;
+  }
+
+  label{
+    display:block;
+    margin-top:16px;
+    font-size:13px;
+    color:#9c9184;
+  }
+
   input,textarea,select{
-    width:100%;box-sizing:border-box;
-    background:#1d1610;border:1px solid #3a2f24;border-radius:8px;
-    color:#ece5d8;padding:10px;font-size:14px;margin-top:6px;
-    font-family:sans-serif;
+    width:100%;
+    box-sizing:border-box;
+    background:#1d1610;
+    border:1px solid #3a2f24;
+    border-radius:8px;
+    color:#ece5d8;
+    padding:10px;
+    font-size:14px;
+    margin-top:6px;
+    font-family:Arial,sans-serif;
+    outline:none;
   }
-  textarea{min-height:80px;resize:vertical;}
-  .row{display:flex;gap:10px;}
-  .row > div{flex:1;}
+
+  input:focus,
+  textarea:focus,
+  select:focus{
+    border-color:#ff8a4c;
+    box-shadow:0 0 8px rgba(255,107,53,.18);
+  }
+
+  textarea{
+    min-height:80px;
+    resize:vertical;
+  }
+
+  .row{
+    display:flex;
+    gap:10px;
+  }
+
+  .row > div{
+    flex:1;
+  }
+
   button{
-    margin-top:18px;width:100%;padding:14px;
-    background:#ff6b35;color:#1a0f08;border:none;border-radius:8px;
-    font-weight:700;font-size:15px;cursor:pointer;
+    margin-top:18px;
+    width:100%;
+    padding:14px;
+    background:linear-gradient(135deg,#ff8a4c,#ff5a2c);
+    color:#1a0f08;
+    border:none;
+    border-radius:10px;
+    font-weight:800;
+    font-size:15px;
+    cursor:pointer;
+    box-shadow:0 5px 18px rgba(255,107,53,.2);
+    transition:.15s;
   }
-  button:disabled{opacity:.5;}
-  #status{margin-top:14px;font-size:13px;padding:10px;border-radius:8px;display:none;}
-  #status.ok{display:block;background:#1d1610;border:1px solid #7fbf6a;color:#7fbf6a;}
-  #status.err{display:block;background:#1d1610;border:1px solid #ff6b35;color:#ff6b35;}
+
+  button:hover{
+    transform:translateY(-1px);
+    filter:brightness(1.08);
+  }
+
+  button:active{
+    transform:translateY(1px);
+  }
+
+  button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+    transform:none;
+  }
+
+  #status{
+    margin-top:14px;
+    font-size:13px;
+    padding:10px;
+    border-radius:8px;
+    display:none;
+  }
+
+  #status.ok{
+    display:block;
+    background:#1d1610;
+    border:1px solid #7fbf6a;
+    color:#7fbf6a;
+  }
+
+  #status.err{
+    display:block;
+    background:#1d1610;
+    border:1px solid #ff6b35;
+    color:#ff6b35;
+  }
+
   .field-group{
-    border:1px solid #3a2f24;border-radius:10px;padding:12px;margin-top:16px;
+    border:1px solid #3a2f24;
+    border-radius:10px;
+    padding:12px;
+    margin-top:16px;
+    background:rgba(29,22,16,.5);
   }
-  .field-group.hidden{display:none;}
-  .hint{font-size:11px;color:#9c9184;margin-top:4px;}
+
+  .field-group.hidden{
+    display:none;
+  }
+
+  .hint{
+    font-size:11px;
+    color:#9c9184;
+    margin-top:4px;
+  }
+
+  .danger{
+    border:1px solid #6b2418;
+    background:linear-gradient(135deg,#26100c,#180b08);
+    border-radius:12px;
+    padding:14px;
+    margin-top:22px;
+  }
+
+  .danger h2{
+    margin:0;
+    font-size:14px;
+    color:#ff765c;
+  }
+
+  .danger p{
+    color:#a99b90;
+    font-size:11px;
+    line-height:1.5;
+  }
+
+  #resetBtn{
+    background:linear-gradient(135deg,#d83b2d,#8f2118);
+    color:#fff;
+    box-shadow:0 5px 18px rgba(216,59,45,.2);
+  }
+
+  .section-title{
+    margin-top:22px;
+    font-size:14px;
+    color:#ffb627;
+    font-weight:800;
+  }
 </style>
 </head>
+
 <body>
 
-<h1>📢 Ember Foundry — Admin Events</h1>
+<!-- OWNER HEADER -->
+<div class="owner-header">
+  <div class="owner-title">🔥 Ember Foundry Control</div>
 
-<div id="playerCountBox" style="background:#1d1610;border:1px solid #3a2f24;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
-  <span style="font-size:13px;color:#9c9184;">Players online now</span>
-  <span id="playerCount" style="font-family:monospace;font-weight:700;font-size:20px;color:#7fbf6a;">—</span>
+  <div class="owner-name">
+    Carl
+    <span class="owner-badge">👑 OWNER</span>
+  </div>
+
+  <div class="owner-subtitle">
+    Permanent owner account • Full administrative access
+  </div>
 </div>
 
-<div style="background:#1d1610;border:1px solid #3a2f24;border-radius:10px;padding:12px 14px;margin-top:14px;">
-  <div style="font-size:13px;color:#9c9184;margin-bottom:8px;">💬 Messages from players (only you see these)</div>
-  <div id="playerMessages" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
-  <div id="playerMessagesEmpty" style="font-size:12px;color:#9c9184;text-align:center;padding:10px 0;">No messages yet.</div>
+<h1>📢 Admin Events</h1>
+
+<!-- PLAYER COUNT -->
+<div id="playerCountBox"
+style="
+background:#1d1610;
+border:1px solid #3a2f24;
+border-radius:10px;
+padding:12px 14px;
+display:flex;
+align-items:center;
+justify-content:space-between;
+">
+  <span style="font-size:13px;color:#9c9184;">
+    Players online now
+  </span>
+
+  <span
+    id="playerCount"
+    style="font-family:monospace;font-weight:700;font-size:20px;color:#7fbf6a;"
+  >—</span>
 </div>
 
+<!-- PLAYER MESSAGES -->
+<div
+style="
+background:#1d1610;
+border:1px solid #3a2f24;
+border-radius:10px;
+padding:12px 14px;
+margin-top:14px;
+">
+
+  <div style="font-size:13px;color:#9c9184;margin-bottom:8px;">
+    💬 Messages from players
+  </div>
+
+  <div
+    id="playerMessages"
+    style="
+    max-height:220px;
+    overflow-y:auto;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    "
+  ></div>
+
+  <div
+    id="playerMessagesEmpty"
+    style="
+    font-size:12px;
+    color:#9c9184;
+    text-align:center;
+    padding:10px 0;
+    "
+  >
+    No messages yet.
+  </div>
+
+</div>
+
+<!-- BACKEND -->
 <label for="apiUrl">Backend URL</label>
-<input type="text" id="apiUrl" value="https://tycoon-1-bt5n.onrender.com" placeholder="https://your-backend.onrender.com">
 
+<input
+  type="text"
+  id="apiUrl"
+  value="https://tycoon-1-bt5n.onrender.com"
+  placeholder="https://your-backend.onrender.com"
+>
+
+<!-- ADMIN KEY -->
 <label for="adminKey">Admin key</label>
-<input type="password" id="adminKey" placeholder="Your secret ADMIN_KEY">
 
-<label for="adminName">Your name (shown as "Owner")</label>
-<input type="text" id="adminName" placeholder="e.g. Carl" maxlength="20">
+<input
+  type="password"
+  id="adminKey"
+  placeholder="Your secret ADMIN_KEY"
+>
 
+<!-- OWNER NAME -->
+<div
+style="
+margin-top:14px;
+padding:12px;
+border-radius:10px;
+border:1px solid #6b3a19;
+background:#1d1610;
+"
+>
+  <div style="font-size:12px;color:#9c9184;">
+    Event identity
+  </div>
+
+  <div style="margin-top:6px;font-size:17px;font-weight:800;color:#ffd36a;">
+    Carl <span style="font-size:12px;">[👑 OWNER]</span>
+  </div>
+
+  <div style="margin-top:5px;font-size:11px;color:#777067;">
+    Owner name is permanent and cannot be changed from this panel.
+  </div>
+</div>
+
+<!-- EVENT TYPE -->
 <label for="eventType">Event type</label>
+
 <select id="eventType">
-  <option value="announcement">📢 Announcement (banner message)</option>
-  <option value="gold_rain">💰 Gold Rain (free gold for everyone)</option>
-  <option value="global_boost">🔥 Global Boost (free output multiplier)</option>
-  <option value="overheat_immunity">🛡️ Overheat Immunity (unlimited clicking)</option>
-  <option value="auto_click">🤖 Auto Strike (anvil clicks itself)</option>
-  <option value="free_station">🏭 Free Station (grant a station)</option>
-  <option value="free_upgrade">🔧 Free Upgrade (grant an upgrade)</option>
-  <option value="shard_gift">💎 Shard Gift (bonus Ember Shards)</option>
-  <option value="confetti">🎉 Confetti (just for fun, no rewards)</option>
-  <option value="reset_cooldowns">♻️ Reset Boost Cooldowns (everyone)</option>
-  <option value="mystery_box">🎰 Mystery Box (random surprise reward)</option>
+  <option value="announcement">📢 Announcement</option>
+  <option value="gold_rain">💰 Gold Rain</option>
+  <option value="global_boost">🔥 Global Boost</option>
+  <option value="overheat_immunity">🛡️ Overheat Immunity</option>
+  <option value="auto_click">🤖 Auto Strike</option>
+  <option value="free_station">🏭 Free Station</option>
+  <option value="free_upgrade">🔧 Free Upgrade</option>
+  <option value="shard_gift">💎 Shard Gift</option>
+  <option value="confetti">🎉 Confetti</option>
+  <option value="reset_cooldowns">♻️ Reset Boost Cooldowns</option>
+  <option value="mystery_box">🎰 Mystery Box</option>
 </select>
 
-<!-- Announcement -->
+<!-- ANNOUNCEMENT -->
 <div class="field-group" id="fields-announcement">
-  <label for="message">Message (shown to all players for 15s)</label>
-  <textarea id="message" placeholder="Type your announcement..." maxlength="500"></textarea>
+
+  <label for="message">
+    Message
+  </label>
+
+  <textarea
+    id="message"
+    placeholder="Type your announcement..."
+    maxlength="500"
+  ></textarea>
+
 </div>
 
-<!-- Gold Rain -->
+<!-- GOLD RAIN -->
 <div class="field-group hidden" id="fields-gold_rain">
-  <label for="goldAmount">Gold amount (given instantly to every connected player)</label>
-  <input type="number" id="goldAmount" value="1000" min="1">
-  <div class="hint">Applies directly to each player's own save — can't affect anyone else's.</div>
+
+  <label for="goldAmount">
+    Gold amount
+  </label>
+
+  <input
+    type="number"
+    id="goldAmount"
+    value="1000"
+    min="1"
+  >
+
+  <div class="hint">
+    Gives the amount to every connected player.
+  </div>
+
 </div>
 
-<!-- Global Boost -->
+<!-- GLOBAL BOOST -->
 <div class="field-group hidden" id="fields-global_boost">
+
   <div class="row">
+
     <div>
       <label for="boostMult">Multiplier</label>
-      <input type="number" id="boostMult" value="2" min="1.1" step="0.1">
+
+      <input
+        type="number"
+        id="boostMult"
+        value="2"
+        min="1.1"
+        step="0.1"
+      >
     </div>
+
     <div>
-      <label for="boostDuration">Duration (seconds)</label>
-      <input type="number" id="boostDuration" value="30" min="1">
+      <label for="boostDuration">
+        Duration (seconds)
+      </label>
+
+      <input
+        type="number"
+        id="boostDuration"
+        value="30"
+        min="1"
+      >
     </div>
+
   </div>
-  <div class="hint">Free — doesn't cost players anything, unlike their normal Boosts.</div>
+
 </div>
 
-<!-- Overheat Immunity -->
+<!-- OVERHEAT -->
 <div class="field-group hidden" id="fields-overheat_immunity">
-  <label for="immunityDuration">Duration (seconds)</label>
-  <input type="number" id="immunityDuration" value="20" min="1">
-  <div class="hint">Players can click as fast as they want without overheating, for this long.</div>
+
+  <label for="immunityDuration">
+    Duration (seconds)
+  </label>
+
+  <input
+    type="number"
+    id="immunityDuration"
+    value="20"
+    min="1"
+  >
+
 </div>
 
-<!-- Auto Strike -->
+<!-- AUTO CLICK -->
 <div class="field-group hidden" id="fields-auto_click">
+
   <div class="row">
+
     <div>
-      <label for="autoCps">Clicks per second</label>
-      <input type="number" id="autoCps" value="3" min="1" step="1">
+      <label for="autoCps">
+        Clicks per second
+      </label>
+
+      <input
+        type="number"
+        id="autoCps"
+        value="3"
+        min="1"
+      >
     </div>
+
     <div>
-      <label for="autoDuration">Duration (seconds)</label>
-      <input type="number" id="autoDuration" value="15" min="1">
+      <label for="autoDuration">
+        Duration (seconds)
+      </label>
+
+      <input
+        type="number"
+        id="autoDuration"
+        value="15"
+        min="1"
+      >
     </div>
+
   </div>
-  <div class="hint">The anvil strikes itself automatically for every player, for this long.</div>
+
 </div>
 
-<!-- Free Station -->
+<!-- FREE STATION -->
 <div class="field-group hidden" id="fields-free_station">
+
   <label for="stationId">Station</label>
+
   <select id="stationId">
+
     <option value="apprentice">Apprentice</option>
     <option value="bellows">Bellows Rig</option>
     <option value="smelter">Smelter</option>
@@ -140,303 +518,972 @@
     <option value="blast">Blast Furnace</option>
     <option value="automaton">Automaton Line</option>
     <option value="dragon">Dragon's Hoard</option>
+
   </select>
+
   <label for="stationAmount">Amount</label>
-  <input type="number" id="stationAmount" value="1" min="1">
-  <div class="hint">Every connected player instantly owns this many more of the chosen station, for free.</div>
+
+  <input
+    type="number"
+    id="stationAmount"
+    value="1"
+    min="1"
+  >
+
 </div>
 
-<!-- Free Upgrade -->
+<!-- FREE UPGRADE -->
 <div class="field-group hidden" id="fields-free_upgrade">
+
   <label for="upgradeId">Upgrade</label>
+
   <select id="upgradeId">
-    <option value="hammer1">Tempered Hammer (Strike x2)</option>
+
+    <option value="hammer1">Tempered Hammer</option>
     <option value="bellows2">Reinforced Bellows</option>
     <option value="apprentice2">Motivated Apprentices</option>
-    <option value="hammer2">Reinforced Grip (Strike x3)</option>
+    <option value="hammer2">Reinforced Grip</option>
     <option value="smelter2">Double Crucible</option>
-    <option value="allrate1">Coal Contract (All output x1.5)</option>
+    <option value="allrate1">Coal Contract</option>
     <option value="forgemaster2">Master's Certification</option>
     <option value="press2">Precision Dies</option>
     <option value="ledger1">Foreman's Ledger</option>
-    <option value="hammer3">Ember-Forged Hammer (Strike x5)</option>
+    <option value="hammer3">Ember-Forged Hammer</option>
     <option value="foundry2">Extra Casting Line</option>
-    <option value="allrate2">Rail Spur (All output x2)</option>
+    <option value="allrate2">Rail Spur</option>
     <option value="ironworks2">Precision Gearing</option>
     <option value="clickscale">Anvil of the Ancients</option>
-    <option value="hammer4">Meteoric Alloy Head (Strike x10)</option>
+    <option value="hammer4">Meteoric Alloy Head</option>
     <option value="blast2">Superheated Core</option>
-    <option value="allrate3">Automated Logistics (All output x2.5)</option>
+    <option value="allrate3">Automated Logistics</option>
     <option value="automaton2">Self-Repair Protocol</option>
-    <option value="allrate4">Continental Freight (All output x3)</option>
+    <option value="allrate4">Continental Freight</option>
     <option value="dragon2">Second Deal</option>
-    <option value="hammer5">Hand of the Foundry God (Strike x25)</option>
+    <option value="hammer5">Hand of the Foundry God</option>
+
   </select>
-  <div class="hint">Grants this upgrade free to every connected player who doesn't already own it.</div>
+
 </div>
 
-<!-- Shard Gift -->
+<!-- SHARDS -->
 <div class="field-group hidden" id="fields-shard_gift">
-  <label for="shardAmount">Ember Shards to gift</label>
-  <input type="number" id="shardAmount" value="1" min="1">
-  <div class="hint">Each shard is +10% permanent output — this stacks with whatever players already have.</div>
+
+  <label for="shardAmount">
+    Ember Shards
+  </label>
+
+  <input
+    type="number"
+    id="shardAmount"
+    value="1"
+    min="1"
+  >
+
 </div>
 
-<!-- Confetti -->
+<!-- CONFETTI -->
 <div class="field-group hidden" id="fields-confetti">
-  <div class="hint">Purely visual — a confetti burst for everyone, no gold or bonuses.</div>
+
+  <div class="hint">
+    Purely visual confetti event.
+  </div>
+
 </div>
 
-<!-- Reset Cooldowns -->
+<!-- RESET COOLDOWNS -->
 <div class="field-group hidden" id="fields-reset_cooldowns">
-  <div class="hint">Instantly clears every player's Boost cooldown timers so they can use their Boosts again right away.</div>
+
+  <div class="hint">
+    Clears every player's boost cooldown timers.
+  </div>
+
 </div>
 
-<!-- Mystery Box -->
+<!-- MYSTERY BOX -->
 <div class="field-group hidden" id="fields-mystery_box">
-  <div class="hint">Picks a random reward (gold, a shard, or a free station) and gives the same surprise to everyone connected.</div>
+
+  <div class="hint">
+    Gives everyone a random surprise reward.
+  </div>
+
 </div>
 
-<button id="sendBtn">Send to all players</button>
+<!-- SEND -->
+<button id="sendBtn">
+  👑 Send Event as Carl [👑 OWNER]
+</button>
 
 <div id="status"></div>
 
+<!-- RESET ALL PROGRESS -->
+<div class="danger">
+
+  <h2>⚠️ DANGER ZONE</h2>
+
+  <p>
+    This permanently resets the saved progress of every player.
+    Use this when starting a new update or season.
+  </p>
+
+  <button id="resetBtn">
+    🗑️ RESET ALL PLAYER PROGRESS
+  </button>
+
+</div>
+
 <script>
-  var eventTypeSelect = document.getElementById("eventType");
-  var sendBtn = document.getElementById("sendBtn");
-  var statusEl = document.getElementById("status");
 
-  var ALL_GROUPS = [
-    "announcement", "gold_rain", "global_boost", "overheat_immunity",
-    "auto_click", "free_station", "free_upgrade", "shard_gift",
-    "confetti", "reset_cooldowns", "mystery_box"
-  ];
+var eventTypeSelect =
+  document.getElementById("eventType");
 
-  function updateVisibleFields(){
-    var selected = eventTypeSelect.value;
-    ALL_GROUPS.forEach(function(g){
-      var el = document.getElementById("fields-" + g);
-      if(!el) return;
-      if(g === selected) el.classList.remove("hidden");
-      else el.classList.add("hidden");
-    });
-  }
-  eventTypeSelect.addEventListener("change", updateVisibleFields);
-  updateVisibleFields();
+var sendBtn =
+  document.getElementById("sendBtn");
 
-  // Remember admin key + URL + name in this browser only.
-  try{
-    var savedKey = localStorage.getItem("emberAdminKey");
-    var savedUrl = localStorage.getItem("emberAdminUrl");
-    var savedName = localStorage.getItem("emberAdminName");
-    if(savedKey) document.getElementById("adminKey").value = savedKey;
-    if(savedUrl) document.getElementById("apiUrl").value = savedUrl;
-    if(savedName) document.getElementById("adminName").value = savedName;
-  }catch(e){}
+var resetBtn =
+  document.getElementById("resetBtn");
 
-  function buildPayload(eventType){
-    if(eventType === "announcement"){
-      var message = document.getElementById("message").value.trim();
-      if(!message) return { error: "Type a message first." };
-      return { payload: { message: message } };
-    }
-    if(eventType === "gold_rain"){
-      var amount = Number(document.getElementById("goldAmount").value);
-      if(!amount || amount <= 0) return { error: "Enter a valid gold amount." };
-      return { payload: { amount: amount } };
-    }
-    if(eventType === "global_boost"){
-      var mult = Number(document.getElementById("boostMult").value);
-      var seconds = Number(document.getElementById("boostDuration").value);
-      if(!mult || mult <= 1) return { error: "Multiplier must be greater than 1." };
-      if(!seconds || seconds <= 0) return { error: "Enter a valid duration." };
-      return { payload: { mult: mult, durationMs: seconds * 1000 } };
-    }
-    if(eventType === "overheat_immunity"){
-      var immSeconds = Number(document.getElementById("immunityDuration").value);
-      if(!immSeconds || immSeconds <= 0) return { error: "Enter a valid duration." };
-      return { payload: { durationMs: immSeconds * 1000 } };
-    }
-    if(eventType === "auto_click"){
-      var cps = Number(document.getElementById("autoCps").value);
-      var autoSeconds = Number(document.getElementById("autoDuration").value);
-      if(!cps || cps <= 0) return { error: "Enter a valid clicks-per-second." };
-      if(!autoSeconds || autoSeconds <= 0) return { error: "Enter a valid duration." };
-      return { payload: { clicksPerSecond: cps, durationMs: autoSeconds * 1000 } };
-    }
-    if(eventType === "free_station"){
-      var stationId = document.getElementById("stationId").value;
-      var stationAmount = Number(document.getElementById("stationAmount").value);
-      if(!stationAmount || stationAmount <= 0) return { error: "Enter a valid amount." };
-      return { payload: { stationId: stationId, amount: stationAmount } };
-    }
-    if(eventType === "free_upgrade"){
-      var upgradeId = document.getElementById("upgradeId").value;
-      return { payload: { upgradeId: upgradeId } };
-    }
-    if(eventType === "shard_gift"){
-      var shardAmount = Number(document.getElementById("shardAmount").value);
-      if(!shardAmount || shardAmount <= 0) return { error: "Enter a valid shard amount." };
-      return { payload: { amount: shardAmount } };
-    }
-    if(eventType === "confetti"){
-      return { payload: {} };
-    }
-    if(eventType === "reset_cooldowns"){
-      return { payload: {} };
-    }
-    if(eventType === "mystery_box"){
-      return { payload: {} };
-    }
-    return { error: "Unknown event type." };
+var statusEl =
+  document.getElementById("status");
+
+var ALL_GROUPS = [
+  "announcement",
+  "gold_rain",
+  "global_boost",
+  "overheat_immunity",
+  "auto_click",
+  "free_station",
+  "free_upgrade",
+  "shard_gift",
+  "confetti",
+  "reset_cooldowns",
+  "mystery_box"
+];
+
+function updateVisibleFields(){
+
+  var selected =
+    eventTypeSelect.value;
+
+  ALL_GROUPS.forEach(function(g){
+
+    var el =
+      document.getElementById("fields-" + g);
+
+    if(!el) return;
+
+    if(g === selected)
+      el.classList.remove("hidden");
+    else
+      el.classList.add("hidden");
+
+  });
+}
+
+eventTypeSelect.addEventListener(
+  "change",
+  updateVisibleFields
+);
+
+updateVisibleFields();
+
+
+/* -----------------------------
+   BUILD EVENT PAYLOAD
+----------------------------- */
+
+function buildPayload(eventType){
+
+  if(eventType === "announcement"){
+
+    var message =
+      document.getElementById("message")
+      .value.trim();
+
+    if(!message)
+      return {
+        error:"Type a message first."
+      };
+
+    return {
+      payload:{
+        message:message
+      }
+    };
   }
 
-  sendBtn.addEventListener("click", function(){
-    var apiUrl = document.getElementById("apiUrl").value.trim().replace(/\/$/, "");
-    var adminKey = document.getElementById("adminKey").value;
-    var adminName = document.getElementById("adminName").value.trim() || "Owner";
-    var eventType = eventTypeSelect.value;
 
-    statusEl.className = "";
-    statusEl.style.display = "none";
+  if(eventType === "gold_rain"){
+
+    var amount =
+      Number(
+        document.getElementById("goldAmount").value
+      );
+
+    if(!amount || amount <= 0)
+      return {
+        error:"Enter a valid gold amount."
+      };
+
+    return {
+      payload:{
+        amount:amount
+      }
+    };
+  }
+
+
+  if(eventType === "global_boost"){
+
+    var mult =
+      Number(
+        document.getElementById("boostMult").value
+      );
+
+    var seconds =
+      Number(
+        document.getElementById("boostDuration").value
+      );
+
+    if(!mult || mult <= 1)
+      return {
+        error:"Multiplier must be greater than 1."
+      };
+
+    if(!seconds || seconds <= 0)
+      return {
+        error:"Enter a valid duration."
+      };
+
+    return {
+      payload:{
+        mult:mult,
+        durationMs:seconds * 1000
+      }
+    };
+  }
+
+
+  if(eventType === "overheat_immunity"){
+
+    var duration =
+      Number(
+        document.getElementById("immunityDuration").value
+      );
+
+    if(!duration || duration <= 0)
+      return {
+        error:"Enter a valid duration."
+      };
+
+    return {
+      payload:{
+        durationMs:duration * 1000
+      }
+    };
+  }
+
+
+  if(eventType === "auto_click"){
+
+    var cps =
+      Number(
+        document.getElementById("autoCps").value
+      );
+
+    var autoDuration =
+      Number(
+        document.getElementById("autoDuration").value
+      );
+
+    if(!cps || cps <= 0)
+      return {
+        error:"Enter a valid CPS."
+      };
+
+    if(!autoDuration || autoDuration <= 0)
+      return {
+        error:"Enter a valid duration."
+      };
+
+    return {
+      payload:{
+        clicksPerSecond:cps,
+        durationMs:autoDuration * 1000
+      }
+    };
+  }
+
+
+  if(eventType === "free_station"){
+
+    var stationId =
+      document.getElementById("stationId").value;
+
+    var stationAmount =
+      Number(
+        document.getElementById("stationAmount").value
+      );
+
+    if(!stationAmount || stationAmount <= 0)
+      return {
+        error:"Enter a valid amount."
+      };
+
+    return {
+      payload:{
+        stationId:stationId,
+        amount:stationAmount
+      }
+    };
+  }
+
+
+  if(eventType === "free_upgrade"){
+
+    return {
+      payload:{
+        upgradeId:
+          document.getElementById("upgradeId").value
+      }
+    };
+  }
+
+
+  if(eventType === "shard_gift"){
+
+    var shardAmount =
+      Number(
+        document.getElementById("shardAmount").value
+      );
+
+    if(!shardAmount || shardAmount <= 0)
+      return {
+        error:"Enter a valid shard amount."
+      };
+
+    return {
+      payload:{
+        amount:shardAmount
+      }
+    };
+  }
+
+
+  if(eventType === "confetti")
+    return {payload:{}};
+
+
+  if(eventType === "reset_cooldowns")
+    return {payload:{}};
+
+
+  if(eventType === "mystery_box")
+    return {payload:{}};
+
+
+  return {
+    error:"Unknown event type."
+  };
+}
+
+
+/* -----------------------------
+   SEND ADMIN EVENT
+----------------------------- */
+
+sendBtn.addEventListener(
+  "click",
+  function(){
+
+    var apiUrl =
+      document.getElementById("apiUrl")
+      .value.trim()
+      .replace(/\/$/,"");
+
+    var adminKey =
+      document.getElementById("adminKey")
+      .value;
+
+    var eventType =
+      eventTypeSelect.value;
+
+    statusEl.className="";
+    statusEl.style.display="none";
+
 
     if(!apiUrl || !adminKey){
-      statusEl.textContent = "Fill in the backend URL and admin key.";
-      statusEl.className = "err";
+
+      statusEl.textContent =
+        "Fill in the backend URL and admin key.";
+
+      statusEl.className="err";
+
       return;
     }
 
-    var built = buildPayload(eventType);
+
+    var built =
+      buildPayload(eventType);
+
+
     if(built.error){
-      statusEl.textContent = built.error;
-      statusEl.className = "err";
+
+      statusEl.textContent =
+        built.error;
+
+      statusEl.className="err";
+
       return;
     }
 
-    try{
-      localStorage.setItem("emberAdminKey", adminKey);
-      localStorage.setItem("emberAdminUrl", apiUrl);
-      localStorage.setItem("emberAdminName", adminName);
-    }catch(e){}
 
-    built.payload.adminName = adminName;
+    /*
+      IMPORTANT:
+      The owner identity is NOT taken
+      from an input anymore.
 
-    sendBtn.disabled = true;
-    sendBtn.textContent = "Sending...";
+      It is permanently Carl.
+    */
 
-    fetch(apiUrl + "/api/admin-event", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-admin-key": adminKey
-      },
-      body: JSON.stringify({ eventType: eventType, payload: built.payload })
+    built.payload.adminName = "Carl";
+    built.payload.adminTitle = "OWNER";
+
+
+    sendBtn.disabled=true;
+
+    sendBtn.textContent =
+      "🔥 Sending as Carl...";
+
+
+    fetch(
+      apiUrl + "/api/admin-event",
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json",
+          "x-admin-key":adminKey
+        },
+
+        body:JSON.stringify({
+          eventType:eventType,
+          payload:built.payload
+        })
+      }
+    )
+
+    .then(function(r){
+
+      if(!r.ok)
+
+        return r.json()
+          .then(function(j){
+
+            throw new Error(
+              j.error ||
+              "Server rejected the request."
+            );
+
+          });
+
+      return r.json();
+
     })
-      .then(function(r){
-        if(!r.ok) return r.json().then(function(j){ throw new Error(j.error || "Server rejected the request."); });
-        return r.json();
-      })
-      .then(function(){
-        statusEl.textContent = "Sent! Players will see/receive it now.";
-        statusEl.className = "ok";
-        if(eventType === "announcement") document.getElementById("message").value = "";
-      })
-      .catch(function(err){
-        statusEl.textContent = "Failed: " + err.message;
-        statusEl.className = "err";
-      })
-      .finally(function(){
-        sendBtn.disabled = false;
-        sendBtn.textContent = "Send to all players";
-      });
+
+    .then(function(){
+
+      statusEl.textContent =
+        "🔥 Event sent as Carl [👑 OWNER]!";
+
+      statusEl.className="ok";
+
+
+      if(eventType === "announcement"){
+
+        document.getElementById("message")
+          .value="";
+      }
+
+    })
+
+    .catch(function(err){
+
+      statusEl.textContent =
+        "Failed: " + err.message;
+
+      statusEl.className="err";
+
+    })
+
+    .finally(function(){
+
+      sendBtn.disabled=false;
+
+      sendBtn.textContent =
+        "👑 Send Event as Carl [👑 OWNER]";
+
+    });
+
+  }
+);
+
+
+/* -----------------------------
+   RESET ALL PLAYER PROGRESS
+----------------------------- */
+
+resetBtn.addEventListener(
+  "click",
+  function(){
+
+    var apiUrl =
+      document.getElementById("apiUrl")
+      .value.trim()
+      .replace(/\/$/,"");
+
+    var adminKey =
+      document.getElementById("adminKey")
+      .value;
+
+
+    if(!apiUrl || !adminKey){
+
+      statusEl.textContent =
+        "Enter your backend URL and admin key first.";
+
+      statusEl.className="err";
+
+      return;
+    }
+
+
+    var confirmed =
+      confirm(
+        "⚠️ RESET ALL PLAYER PROGRESS?\n\n" +
+        "This will erase the saved progress of EVERY player.\n\n" +
+        "This cannot be undone."
+      );
+
+
+    if(!confirmed)
+      return;
+
+
+    var confirmedAgain =
+      confirm(
+        "FINAL WARNING!\n\n" +
+        "Reset every player's progress now?"
+      );
+
+
+    if(!confirmedAgain)
+      return;
+
+
+    resetBtn.disabled=true;
+
+    resetBtn.textContent =
+      "🗑️ RESETTING...";
+
+
+    fetch(
+      apiUrl + "/api/admin-reset-all",
+      {
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json",
+          "x-admin-key":adminKey
+        },
+
+        body:JSON.stringify({
+          adminName:"Carl",
+          adminTitle:"OWNER"
+        })
+      }
+    )
+
+    .then(function(r){
+
+      if(!r.ok)
+
+        return r.json()
+          .then(function(j){
+
+            throw new Error(
+              j.error ||
+              "Reset was rejected."
+            );
+
+          });
+
+      return r.json();
+
+    })
+
+    .then(function(){
+
+      statusEl.textContent =
+        "🗑️ ALL PLAYER PROGRESS HAS BEEN RESET.";
+
+      statusEl.className="ok";
+
+    })
+
+    .catch(function(err){
+
+      statusEl.textContent =
+        "Reset failed: " + err.message;
+
+      statusEl.className="err";
+
+    })
+
+    .finally(function(){
+
+      resetBtn.disabled=false;
+
+      resetBtn.textContent =
+        "🗑️ RESET ALL PLAYER PROGRESS";
+
+    });
+
+  }
+);
+
+
+/* -----------------------------
+   PLAYER COUNT
+----------------------------- */
+
+var playerCountEl =
+  document.getElementById("playerCount");
+
+
+function refreshPlayerCount(){
+
+  var apiUrl =
+    document.getElementById("apiUrl")
+    .value.trim()
+    .replace(/\/$/,"");
+
+  if(!apiUrl){
+
+    playerCountEl.textContent="—";
+
+    return;
+  }
+
+
+  fetch(
+    apiUrl + "/api/player-count"
+  )
+
+  .then(function(r){
+
+    if(!r.ok)
+      throw new Error();
+
+    return r.json();
+
+  })
+
+  .then(function(data){
+
+    playerCountEl.textContent =
+      data.count;
+
+  })
+
+  .catch(function(){
+
+    playerCountEl.textContent="?";
+
   });
 
-  // ---------------- Live player count ----------------
-  // Polls a read-only endpoint every few seconds. No admin key needed —
-  // it only reveals a headcount, never any player's individual data.
-  var playerCountEl = document.getElementById("playerCount");
-  function refreshPlayerCount(){
-    var apiUrl = document.getElementById("apiUrl").value.trim().replace(/\/$/, "");
-    if(!apiUrl){ playerCountEl.textContent = "—"; return; }
-    fetch(apiUrl + "/api/player-count")
-      .then(function(r){ if(!r.ok) throw new Error("bad response"); return r.json(); })
-      .then(function(data){ playerCountEl.textContent = data.count; })
-      .catch(function(){ playerCountEl.textContent = "?"; });
+}
+
+
+refreshPlayerCount();
+
+setInterval(
+  refreshPlayerCount,
+  5000
+);
+
+
+/* -----------------------------
+   PLAYER MESSAGES
+----------------------------- */
+
+var playerMessagesEl =
+  document.getElementById(
+    "playerMessages"
+  );
+
+var playerMessagesEmptyEl =
+  document.getElementById(
+    "playerMessagesEmpty"
+  );
+
+var receivedMessages=[];
+
+
+function renderMessages(){
+
+  if(receivedMessages.length === 0){
+
+    playerMessagesEl.innerHTML="";
+
+    playerMessagesEmptyEl.style.display =
+      "block";
+
+    return;
   }
-  refreshPlayerCount();
-  setInterval(refreshPlayerCount, 5000);
 
-  // ---------------- Player messages (chat to owner) ----------------
-  var playerMessagesEl = document.getElementById("playerMessages");
-  var playerMessagesEmptyEl = document.getElementById("playerMessagesEmpty");
-  var receivedMessages = [];
 
-  function renderMessages(){
-    if(receivedMessages.length === 0){
-      playerMessagesEl.innerHTML = "";
-      playerMessagesEmptyEl.style.display = "block";
-      return;
-    }
-    playerMessagesEmptyEl.style.display = "none";
-    playerMessagesEl.innerHTML = receivedMessages.slice().reverse().map(function(m){
-      var d = new Date(m.sentAt);
-      var time = d.toLocaleTimeString();
-      var safeName = document.createElement("div"); safeName.textContent = m.name; 
-      var safeMsg = document.createElement("div"); safeMsg.textContent = m.message;
-      return '<div style="background:#251c14;border:1px solid #3a2f24;border-radius:8px;padding:8px 10px;">'
-        + '<div style="font-size:11px;color:#ffb627;font-weight:700;">' + safeName.innerHTML + ' <span style="color:#9c9184;font-weight:400;">' + time + '</span></div>'
-        + '<div style="font-size:13px;margin-top:3px;">' + safeMsg.innerHTML + '</div>'
-      + '</div>';
-    }).join("");
-  }
+  playerMessagesEmptyEl.style.display =
+    "none";
 
-  function fetchMessageHistory(){
-    var apiUrl = document.getElementById("apiUrl").value.trim().replace(/\/$/, "");
-    var adminKey = document.getElementById("adminKey").value;
-    if(!apiUrl || !adminKey) return;
-    fetch(apiUrl + "/api/player-messages", {
-      headers: { "x-admin-key": adminKey }
+
+  playerMessagesEl.innerHTML =
+    receivedMessages
+    .slice()
+    .reverse()
+    .map(function(m){
+
+      var d =
+        new Date(m.sentAt);
+
+      var time =
+        d.toLocaleTimeString();
+
+
+      var safeName =
+        document.createElement("div");
+
+      safeName.textContent =
+        m.name;
+
+
+      var safeMsg =
+        document.createElement("div");
+
+      safeMsg.textContent =
+        m.message;
+
+
+      return `
+        <div style="
+          background:#251c14;
+          border:1px solid #3a2f24;
+          border-radius:8px;
+          padding:8px 10px;
+        ">
+
+          <div style="
+            font-size:11px;
+            color:#ffb627;
+            font-weight:700;
+          ">
+            ${safeName.innerHTML}
+
+            <span style="
+              color:#9c9184;
+              font-weight:400;
+            ">
+              ${time}
+            </span>
+          </div>
+
+          <div style="
+            font-size:13px;
+            margin-top:3px;
+          ">
+            ${safeMsg.innerHTML}
+          </div>
+
+        </div>
+      `;
+
     })
-      .then(function(r){ if(!r.ok) throw new Error("unauthorized or unreachable"); return r.json(); })
-      .then(function(data){
-        receivedMessages = data;
-        renderMessages();
-      })
-      .catch(function(){ /* silently ignore — key may not be filled in yet */ });
+    .join("");
+
+}
+
+
+function fetchMessageHistory(){
+
+  var apiUrl =
+    document.getElementById("apiUrl")
+    .value.trim()
+    .replace(/\/$/,"");
+
+  var adminKey =
+    document.getElementById("adminKey")
+    .value;
+
+
+  if(!apiUrl || !adminKey)
+    return;
+
+
+  fetch(
+    apiUrl + "/api/player-messages",
+    {
+      headers:{
+        "x-admin-key":adminKey
+      }
+    }
+  )
+
+  .then(function(r){
+
+    if(!r.ok)
+      throw new Error();
+
+    return r.json();
+
+  })
+
+  .then(function(data){
+
+    receivedMessages=data;
+
+    renderMessages();
+
+  })
+
+  .catch(function(){});
+
+}
+
+
+/* -----------------------------
+   ADMIN WEBSOCKET
+----------------------------- */
+
+var adminSocket=null;
+
+
+function connectAdminSocket(){
+
+  var apiUrl =
+    document.getElementById("apiUrl")
+    .value.trim()
+    .replace(/\/$/,"");
+
+  var adminKey =
+    document.getElementById("adminKey")
+    .value;
+
+
+  if(!apiUrl || !adminKey)
+    return;
+
+
+  if(adminSocket){
+
+    try{
+      adminSocket.close();
+    }catch(e){}
+
   }
 
-  var adminSocket = null;
-  function connectAdminSocket(){
-    var apiUrl = document.getElementById("apiUrl").value.trim().replace(/\/$/, "");
-    var adminKey = document.getElementById("adminKey").value;
-    if(!apiUrl || !adminKey) return;
-    if(adminSocket){ try{ adminSocket.close(); }catch(e){} }
-    var wsUrl = apiUrl.replace(/^http/, "ws") + "/ws?adminKey=" + encodeURIComponent(adminKey);
-    adminSocket = new WebSocket(wsUrl);
-    adminSocket.onmessage = function(evt){
+
+  var wsUrl =
+    apiUrl.replace(/^http/,"ws") +
+    "/ws?adminKey=" +
+    encodeURIComponent(adminKey);
+
+
+  adminSocket =
+    new WebSocket(wsUrl);
+
+
+  adminSocket.onmessage =
+    function(evt){
+
       try{
-        var data = JSON.parse(evt.data);
-        if(data.type === "player_message"){
-          receivedMessages.push({ name: data.name, message: data.message, sentAt: data.sentAt });
-          renderMessages();
-        }
-      }catch(e){}
-    };
-    adminSocket.onclose = function(){ setTimeout(connectAdminSocket, 3000); };
-    adminSocket.onerror = function(){ if(adminSocket) adminSocket.close(); };
-  }
 
-  // Connect once the admin key is filled in (either restored from
-  // localStorage on load, or typed in manually).
-  function tryInitMessaging(){
-    fetchMessageHistory();
-    connectAdminSocket();
-  }
-  if(document.getElementById("adminKey").value){
-    tryInitMessaging();
-  }
-  document.getElementById("adminKey").addEventListener("change", tryInitMessaging);
+        var data =
+          JSON.parse(evt.data);
+
+
+        if(data.type === "player_message"){
+
+          receivedMessages.push({
+
+            name:data.name,
+
+            message:data.message,
+
+            sentAt:data.sentAt
+
+          });
+
+
+          renderMessages();
+
+        }
+
+      }catch(e){}
+
+    };
+
+
+  adminSocket.onclose =
+    function(){
+
+      setTimeout(
+        connectAdminSocket,
+        3000
+      );
+
+    };
+
+
+  adminSocket.onerror =
+    function(){
+
+      if(adminSocket)
+        adminSocket.close();
+
+    };
+
+}
+
+
+/* -----------------------------
+   START MESSAGING
+----------------------------- */
+
+function tryInitMessaging(){
+
+  fetchMessageHistory();
+
+  connectAdminSocket();
+
+}
+
+
+document
+  .getElementById("adminKey")
+  .addEventListener(
+    "change",
+    tryInitMessaging
+  );
+
+
+if(
+  document.getElementById("adminKey").value
+){
+
+  tryInitMessaging();
+
+}
+
 </script>
 
 </body>
-</html>
+    </html>
