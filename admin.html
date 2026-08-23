@@ -12,15 +12,17 @@
   }
   h1{font-size:18px;color:#ffb627;}
   label{display:block;margin-top:16px;font-size:13px;color:#9c9184;}
-  input,textarea{
+  input,textarea,select{
     width:100%;box-sizing:border-box;
     background:#1d1610;border:1px solid #3a2f24;border-radius:8px;
     color:#ece5d8;padding:10px;font-size:14px;margin-top:6px;
     font-family:sans-serif;
   }
   textarea{min-height:80px;resize:vertical;}
+  .row{display:flex;gap:10px;}
+  .row > div{flex:1;}
   button{
-    margin-top:16px;width:100%;padding:14px;
+    margin-top:18px;width:100%;padding:14px;
     background:#ff6b35;color:#1a0f08;border:none;border-radius:8px;
     font-weight:700;font-size:15px;cursor:pointer;
   }
@@ -28,11 +30,16 @@
   #status{margin-top:14px;font-size:13px;padding:10px;border-radius:8px;display:none;}
   #status.ok{display:block;background:#1d1610;border:1px solid #7fbf6a;color:#7fbf6a;}
   #status.err{display:block;background:#1d1610;border:1px solid #ff6b35;color:#ff6b35;}
+  .field-group{
+    border:1px solid #3a2f24;border-radius:10px;padding:12px;margin-top:16px;
+  }
+  .field-group.hidden{display:none;}
+  .hint{font-size:11px;color:#9c9184;margin-top:4px;}
 </style>
 </head>
 <body>
 
-<h1>📢 Ember Foundry — Send Announcement</h1>
+<h1>📢 Ember Foundry — Admin Events</h1>
 
 <label for="apiUrl">Backend URL</label>
 <input type="text" id="apiUrl" value="https://tycoon-1-bt5n.onrender.com" placeholder="https://your-backend.onrender.com">
@@ -40,37 +47,229 @@
 <label for="adminKey">Admin key</label>
 <input type="password" id="adminKey" placeholder="Your secret ADMIN_KEY">
 
-<label for="message">Message (shown to all players for 15s)</label>
-<textarea id="message" placeholder="Type your announcement..." maxlength="500"></textarea>
+<label for="adminName">Your name (shown as "Owner")</label>
+<input type="text" id="adminName" placeholder="e.g. Carl" maxlength="20">
+
+<label for="eventType">Event type</label>
+<select id="eventType">
+  <option value="announcement">📢 Announcement (banner message)</option>
+  <option value="gold_rain">💰 Gold Rain (free gold for everyone)</option>
+  <option value="global_boost">🔥 Global Boost (free output multiplier)</option>
+  <option value="overheat_immunity">🛡️ Overheat Immunity (unlimited clicking)</option>
+  <option value="auto_click">🤖 Auto Strike (anvil clicks itself)</option>
+  <option value="free_station">🏭 Free Station (grant a station)</option>
+  <option value="free_upgrade">🔧 Free Upgrade (grant an upgrade)</option>
+  <option value="shard_gift">💎 Shard Gift (bonus Ember Shards)</option>
+</select>
+
+<!-- Announcement -->
+<div class="field-group" id="fields-announcement">
+  <label for="message">Message (shown to all players for 15s)</label>
+  <textarea id="message" placeholder="Type your announcement..." maxlength="500"></textarea>
+</div>
+
+<!-- Gold Rain -->
+<div class="field-group hidden" id="fields-gold_rain">
+  <label for="goldAmount">Gold amount (given instantly to every connected player)</label>
+  <input type="number" id="goldAmount" value="1000" min="1">
+  <div class="hint">Applies directly to each player's own save — can't affect anyone else's.</div>
+</div>
+
+<!-- Global Boost -->
+<div class="field-group hidden" id="fields-global_boost">
+  <div class="row">
+    <div>
+      <label for="boostMult">Multiplier</label>
+      <input type="number" id="boostMult" value="2" min="1.1" step="0.1">
+    </div>
+    <div>
+      <label for="boostDuration">Duration (seconds)</label>
+      <input type="number" id="boostDuration" value="30" min="1">
+    </div>
+  </div>
+  <div class="hint">Free — doesn't cost players anything, unlike their normal Boosts.</div>
+</div>
+
+<!-- Overheat Immunity -->
+<div class="field-group hidden" id="fields-overheat_immunity">
+  <label for="immunityDuration">Duration (seconds)</label>
+  <input type="number" id="immunityDuration" value="20" min="1">
+  <div class="hint">Players can click as fast as they want without overheating, for this long.</div>
+</div>
+
+<!-- Auto Strike -->
+<div class="field-group hidden" id="fields-auto_click">
+  <div class="row">
+    <div>
+      <label for="autoCps">Clicks per second</label>
+      <input type="number" id="autoCps" value="3" min="1" step="1">
+    </div>
+    <div>
+      <label for="autoDuration">Duration (seconds)</label>
+      <input type="number" id="autoDuration" value="15" min="1">
+    </div>
+  </div>
+  <div class="hint">The anvil strikes itself automatically for every player, for this long.</div>
+</div>
+
+<!-- Free Station -->
+<div class="field-group hidden" id="fields-free_station">
+  <label for="stationId">Station</label>
+  <select id="stationId">
+    <option value="apprentice">Apprentice</option>
+    <option value="bellows">Bellows Rig</option>
+    <option value="smelter">Smelter</option>
+    <option value="press">Ingot Press</option>
+    <option value="forgemaster">Forge Master</option>
+    <option value="foundry">Foundry Hall</option>
+    <option value="ironworks">Ironworks</option>
+    <option value="blast">Blast Furnace</option>
+    <option value="automaton">Automaton Line</option>
+    <option value="dragon">Dragon's Hoard</option>
+  </select>
+  <label for="stationAmount">Amount</label>
+  <input type="number" id="stationAmount" value="1" min="1">
+  <div class="hint">Every connected player instantly owns this many more of the chosen station, for free.</div>
+</div>
+
+<!-- Free Upgrade -->
+<div class="field-group hidden" id="fields-free_upgrade">
+  <label for="upgradeId">Upgrade</label>
+  <select id="upgradeId">
+    <option value="hammer1">Tempered Hammer (Strike x2)</option>
+    <option value="bellows2">Reinforced Bellows</option>
+    <option value="apprentice2">Motivated Apprentices</option>
+    <option value="hammer2">Reinforced Grip (Strike x3)</option>
+    <option value="smelter2">Double Crucible</option>
+    <option value="allrate1">Coal Contract (All output x1.5)</option>
+    <option value="forgemaster2">Master's Certification</option>
+    <option value="press2">Precision Dies</option>
+    <option value="ledger1">Foreman's Ledger</option>
+    <option value="hammer3">Ember-Forged Hammer (Strike x5)</option>
+    <option value="foundry2">Extra Casting Line</option>
+    <option value="allrate2">Rail Spur (All output x2)</option>
+    <option value="ironworks2">Precision Gearing</option>
+    <option value="clickscale">Anvil of the Ancients</option>
+    <option value="hammer4">Meteoric Alloy Head (Strike x10)</option>
+    <option value="blast2">Superheated Core</option>
+    <option value="allrate3">Automated Logistics (All output x2.5)</option>
+    <option value="automaton2">Self-Repair Protocol</option>
+    <option value="allrate4">Continental Freight (All output x3)</option>
+    <option value="dragon2">Second Deal</option>
+    <option value="hammer5">Hand of the Foundry God (Strike x25)</option>
+  </select>
+  <div class="hint">Grants this upgrade free to every connected player who doesn't already own it.</div>
+</div>
+
+<!-- Shard Gift -->
+<div class="field-group hidden" id="fields-shard_gift">
+  <label for="shardAmount">Ember Shards to gift</label>
+  <input type="number" id="shardAmount" value="1" min="1">
+  <div class="hint">Each shard is +10% permanent output — this stacks with whatever players already have.</div>
+</div>
 
 <button id="sendBtn">Send to all players</button>
 
 <div id="status"></div>
 
 <script>
+  var eventTypeSelect = document.getElementById("eventType");
   var sendBtn = document.getElementById("sendBtn");
   var statusEl = document.getElementById("status");
 
-  // Remember the admin key + URL in this browser only, so you don't
-  // have to retype them every time. Nothing here is sent anywhere
-  // except directly to your own backend when you hit Send.
+  var ALL_GROUPS = [
+    "announcement", "gold_rain", "global_boost", "overheat_immunity",
+    "auto_click", "free_station", "free_upgrade", "shard_gift"
+  ];
+
+  function updateVisibleFields(){
+    var selected = eventTypeSelect.value;
+    ALL_GROUPS.forEach(function(g){
+      var el = document.getElementById("fields-" + g);
+      if(!el) return;
+      if(g === selected) el.classList.remove("hidden");
+      else el.classList.add("hidden");
+    });
+  }
+  eventTypeSelect.addEventListener("change", updateVisibleFields);
+  updateVisibleFields();
+
+  // Remember admin key + URL + name in this browser only.
   try{
     var savedKey = localStorage.getItem("emberAdminKey");
     var savedUrl = localStorage.getItem("emberAdminUrl");
+    var savedName = localStorage.getItem("emberAdminName");
     if(savedKey) document.getElementById("adminKey").value = savedKey;
     if(savedUrl) document.getElementById("apiUrl").value = savedUrl;
+    if(savedName) document.getElementById("adminName").value = savedName;
   }catch(e){}
+
+  function buildPayload(eventType){
+    if(eventType === "announcement"){
+      var message = document.getElementById("message").value.trim();
+      if(!message) return { error: "Type a message first." };
+      return { payload: { message: message } };
+    }
+    if(eventType === "gold_rain"){
+      var amount = Number(document.getElementById("goldAmount").value);
+      if(!amount || amount <= 0) return { error: "Enter a valid gold amount." };
+      return { payload: { amount: amount } };
+    }
+    if(eventType === "global_boost"){
+      var mult = Number(document.getElementById("boostMult").value);
+      var seconds = Number(document.getElementById("boostDuration").value);
+      if(!mult || mult <= 1) return { error: "Multiplier must be greater than 1." };
+      if(!seconds || seconds <= 0) return { error: "Enter a valid duration." };
+      return { payload: { mult: mult, durationMs: seconds * 1000 } };
+    }
+    if(eventType === "overheat_immunity"){
+      var immSeconds = Number(document.getElementById("immunityDuration").value);
+      if(!immSeconds || immSeconds <= 0) return { error: "Enter a valid duration." };
+      return { payload: { durationMs: immSeconds * 1000 } };
+    }
+    if(eventType === "auto_click"){
+      var cps = Number(document.getElementById("autoCps").value);
+      var autoSeconds = Number(document.getElementById("autoDuration").value);
+      if(!cps || cps <= 0) return { error: "Enter a valid clicks-per-second." };
+      if(!autoSeconds || autoSeconds <= 0) return { error: "Enter a valid duration." };
+      return { payload: { clicksPerSecond: cps, durationMs: autoSeconds * 1000 } };
+    }
+    if(eventType === "free_station"){
+      var stationId = document.getElementById("stationId").value;
+      var stationAmount = Number(document.getElementById("stationAmount").value);
+      if(!stationAmount || stationAmount <= 0) return { error: "Enter a valid amount." };
+      return { payload: { stationId: stationId, amount: stationAmount } };
+    }
+    if(eventType === "free_upgrade"){
+      var upgradeId = document.getElementById("upgradeId").value;
+      return { payload: { upgradeId: upgradeId } };
+    }
+    if(eventType === "shard_gift"){
+      var shardAmount = Number(document.getElementById("shardAmount").value);
+      if(!shardAmount || shardAmount <= 0) return { error: "Enter a valid shard amount." };
+      return { payload: { amount: shardAmount } };
+    }
+    return { error: "Unknown event type." };
+  }
 
   sendBtn.addEventListener("click", function(){
     var apiUrl = document.getElementById("apiUrl").value.trim().replace(/\/$/, "");
     var adminKey = document.getElementById("adminKey").value;
-    var message = document.getElementById("message").value.trim();
+    var adminName = document.getElementById("adminName").value.trim() || "Owner";
+    var eventType = eventTypeSelect.value;
 
     statusEl.className = "";
     statusEl.style.display = "none";
 
-    if(!apiUrl || !adminKey || !message){
-      statusEl.textContent = "Fill in the backend URL, admin key, and a message.";
+    if(!apiUrl || !adminKey){
+      statusEl.textContent = "Fill in the backend URL and admin key.";
+      statusEl.className = "err";
+      return;
+    }
+
+    var built = buildPayload(eventType);
+    if(built.error){
+      statusEl.textContent = built.error;
       statusEl.className = "err";
       return;
     }
@@ -78,27 +277,30 @@
     try{
       localStorage.setItem("emberAdminKey", adminKey);
       localStorage.setItem("emberAdminUrl", apiUrl);
+      localStorage.setItem("emberAdminName", adminName);
     }catch(e){}
+
+    built.payload.adminName = adminName;
 
     sendBtn.disabled = true;
     sendBtn.textContent = "Sending...";
 
-    fetch(apiUrl + "/api/announce", {
+    fetch(apiUrl + "/api/admin-event", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-admin-key": adminKey
       },
-      body: JSON.stringify({ message: message })
+      body: JSON.stringify({ eventType: eventType, payload: built.payload })
     })
       .then(function(r){
-        if(!r.ok) throw new Error("Server rejected the request (check your admin key).");
+        if(!r.ok) return r.json().then(function(j){ throw new Error(j.error || "Server rejected the request."); });
         return r.json();
       })
       .then(function(){
-        statusEl.textContent = "Sent! Players will see it now.";
+        statusEl.textContent = "Sent! Players will see/receive it now.";
         statusEl.className = "ok";
-        document.getElementById("message").value = "";
+        if(eventType === "announcement") document.getElementById("message").value = "";
       })
       .catch(function(err){
         statusEl.textContent = "Failed: " + err.message;
