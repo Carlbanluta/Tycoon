@@ -41,6 +41,17 @@
 
 <h1>📢 Ember Foundry — Admin Events</h1>
 
+<div id="playerCountBox" style="background:#1d1610;border:1px solid #3a2f24;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
+  <span style="font-size:13px;color:#9c9184;">Players online now</span>
+  <span id="playerCount" style="font-family:monospace;font-weight:700;font-size:20px;color:#7fbf6a;">—</span>
+</div>
+
+<div style="background:#1d1610;border:1px solid #3a2f24;border-radius:10px;padding:12px 14px;margin-top:14px;">
+  <div style="font-size:13px;color:#9c9184;margin-bottom:8px;">💬 Messages from players (only you see these)</div>
+  <div id="playerMessages" style="max-height:220px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;"></div>
+  <div id="playerMessagesEmpty" style="font-size:12px;color:#9c9184;text-align:center;padding:10px 0;">No messages yet.</div>
+</div>
+
 <label for="apiUrl">Backend URL</label>
 <input type="text" id="apiUrl" value="https://tycoon-1-bt5n.onrender.com" placeholder="https://your-backend.onrender.com">
 
@@ -60,6 +71,9 @@
   <option value="free_station">🏭 Free Station (grant a station)</option>
   <option value="free_upgrade">🔧 Free Upgrade (grant an upgrade)</option>
   <option value="shard_gift">💎 Shard Gift (bonus Ember Shards)</option>
+  <option value="confetti">🎉 Confetti (just for fun, no rewards)</option>
+  <option value="reset_cooldowns">♻️ Reset Boost Cooldowns (everyone)</option>
+  <option value="mystery_box">🎰 Mystery Box (random surprise reward)</option>
 </select>
 
 <!-- Announcement -->
@@ -168,6 +182,21 @@
   <div class="hint">Each shard is +10% permanent output — this stacks with whatever players already have.</div>
 </div>
 
+<!-- Confetti -->
+<div class="field-group hidden" id="fields-confetti">
+  <div class="hint">Purely visual — a confetti burst for everyone, no gold or bonuses.</div>
+</div>
+
+<!-- Reset Cooldowns -->
+<div class="field-group hidden" id="fields-reset_cooldowns">
+  <div class="hint">Instantly clears every player's Boost cooldown timers so they can use their Boosts again right away.</div>
+</div>
+
+<!-- Mystery Box -->
+<div class="field-group hidden" id="fields-mystery_box">
+  <div class="hint">Picks a random reward (gold, a shard, or a free station) and gives the same surprise to everyone connected.</div>
+</div>
+
 <button id="sendBtn">Send to all players</button>
 
 <div id="status"></div>
@@ -179,7 +208,8 @@
 
   var ALL_GROUPS = [
     "announcement", "gold_rain", "global_boost", "overheat_immunity",
-    "auto_click", "free_station", "free_upgrade", "shard_gift"
+    "auto_click", "free_station", "free_upgrade", "shard_gift",
+    "confetti", "reset_cooldowns", "mystery_box"
   ];
 
   function updateVisibleFields(){
@@ -249,6 +279,15 @@
       if(!shardAmount || shardAmount <= 0) return { error: "Enter a valid shard amount." };
       return { payload: { amount: shardAmount } };
     }
+    if(eventType === "confetti"){
+      return { payload: {} };
+    }
+    if(eventType === "reset_cooldowns"){
+      return { payload: {} };
+    }
+    if(eventType === "mystery_box"){
+      return { payload: {} };
+    }
     return { error: "Unknown event type." };
   }
 
@@ -311,6 +350,92 @@
         sendBtn.textContent = "Send to all players";
       });
   });
+
+  // ---------------- Live player count ----------------
+  // Polls a read-only endpoint every few seconds. No admin key needed —
+  // it only reveals a headcount, never any player's individual data.
+  var playerCountEl = document.getElementById("playerCount");
+  function refreshPlayerCount(){
+    var apiUrl = document.getElementById("apiUrl").value.trim().replace(/\/$/, "");
+    if(!apiUrl){ playerCountEl.textContent = "—"; return; }
+    fetch(apiUrl + "/api/player-count")
+      .then(function(r){ if(!r.ok) throw new Error("bad response"); return r.json(); })
+      .then(function(data){ playerCountEl.textContent = data.count; })
+      .catch(function(){ playerCountEl.textContent = "?"; });
+  }
+  refreshPlayerCount();
+  setInterval(refreshPlayerCount, 5000);
+
+  // ---------------- Player messages (chat to owner) ----------------
+  var playerMessagesEl = document.getElementById("playerMessages");
+  var playerMessagesEmptyEl = document.getElementById("playerMessagesEmpty");
+  var receivedMessages = [];
+
+  function renderMessages(){
+    if(receivedMessages.length === 0){
+      playerMessagesEl.innerHTML = "";
+      playerMessagesEmptyEl.style.display = "block";
+      return;
+    }
+    playerMessagesEmptyEl.style.display = "none";
+    playerMessagesEl.innerHTML = receivedMessages.slice().reverse().map(function(m){
+      var d = new Date(m.sentAt);
+      var time = d.toLocaleTimeString();
+      var safeName = document.createElement("div"); safeName.textContent = m.name; 
+      var safeMsg = document.createElement("div"); safeMsg.textContent = m.message;
+      return '<div style="background:#251c14;border:1px solid #3a2f24;border-radius:8px;padding:8px 10px;">'
+        + '<div style="font-size:11px;color:#ffb627;font-weight:700;">' + safeName.innerHTML + ' <span style="color:#9c9184;font-weight:400;">' + time + '</span></div>'
+        + '<div style="font-size:13px;margin-top:3px;">' + safeMsg.innerHTML + '</div>'
+      + '</div>';
+    }).join("");
+  }
+
+  function fetchMessageHistory(){
+    var apiUrl = document.getElementById("apiUrl").value.trim().replace(/\/$/, "");
+    var adminKey = document.getElementById("adminKey").value;
+    if(!apiUrl || !adminKey) return;
+    fetch(apiUrl + "/api/player-messages", {
+      headers: { "x-admin-key": adminKey }
+    })
+      .then(function(r){ if(!r.ok) throw new Error("unauthorized or unreachable"); return r.json(); })
+      .then(function(data){
+        receivedMessages = data;
+        renderMessages();
+      })
+      .catch(function(){ /* silently ignore — key may not be filled in yet */ });
+  }
+
+  var adminSocket = null;
+  function connectAdminSocket(){
+    var apiUrl = document.getElementById("apiUrl").value.trim().replace(/\/$/, "");
+    var adminKey = document.getElementById("adminKey").value;
+    if(!apiUrl || !adminKey) return;
+    if(adminSocket){ try{ adminSocket.close(); }catch(e){} }
+    var wsUrl = apiUrl.replace(/^http/, "ws") + "/ws?adminKey=" + encodeURIComponent(adminKey);
+    adminSocket = new WebSocket(wsUrl);
+    adminSocket.onmessage = function(evt){
+      try{
+        var data = JSON.parse(evt.data);
+        if(data.type === "player_message"){
+          receivedMessages.push({ name: data.name, message: data.message, sentAt: data.sentAt });
+          renderMessages();
+        }
+      }catch(e){}
+    };
+    adminSocket.onclose = function(){ setTimeout(connectAdminSocket, 3000); };
+    adminSocket.onerror = function(){ if(adminSocket) adminSocket.close(); };
+  }
+
+  // Connect once the admin key is filled in (either restored from
+  // localStorage on load, or typed in manually).
+  function tryInitMessaging(){
+    fetchMessageHistory();
+    connectAdminSocket();
+  }
+  if(document.getElementById("adminKey").value){
+    tryInitMessaging();
+  }
+  document.getElementById("adminKey").addEventListener("change", tryInitMessaging);
 </script>
 
 </body>
